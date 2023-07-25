@@ -43,7 +43,11 @@ class wrangler(pd.DataFrame):
         print("Descriptive Statistics of Numerical Data:", end="\n\n")
         print(self.describe().T, end="\n--------------------------------------------------------------\n")
         print("Descriptive Statistics of Categorical Data:", end="\n\n")
-        print(self.describe(include="O").T, end="\n--------------------------------------------------------------\n")
+        for x in self.columns:
+            if self[x].dtype != 'object' and self[x].dtype != 'category' and self[x].dtype != 'bool':
+                continue
+            else:
+                print(self.describe(include="O").T, end="\n--------------------------------------------------------------\n")
         print("Check if any Columns have Null Values:", end="\n\n")
         print(self.isnull().sum(), end="\n--------------------------------------------------------------\n")
         print("Check for Duplicated Rows in Dataframe:", end="\n\n")
