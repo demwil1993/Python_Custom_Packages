@@ -48,6 +48,7 @@ class wrangler(pd.DataFrame):
                 continue
             else:
                 print(self.describe(include="O").T, end="\n--------------------------------------------------------------\n")
+                break
         print("Check if any Columns have Null Values:", end="\n\n")
         print(self.isnull().sum(), end="\n--------------------------------------------------------------\n")
         print("Check for Duplicated Rows in Dataframe:", end="\n\n")
