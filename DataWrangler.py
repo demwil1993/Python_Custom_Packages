@@ -189,6 +189,11 @@ class wrangler(pd.DataFrame):
             if self[x].dtype == 'object':
                 self[x] = self[x].astype('category')
 
+    # This method replaces values in a DataFrame that represent an unknown value but are not recorded as null (e.g. -, ?, *)
+    def turn_null(self, val):
+        for col in self.columns:
+            self[col] = self[col].replace({val:np.nan})
+
     # This method outputs the percentage of null values in each column of dataframe
     def null_percent(self, data):
         data.isnull().mean().round(4).mul(100).sort_values(ascending=False)
