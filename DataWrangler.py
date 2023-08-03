@@ -44,7 +44,7 @@ class wrangler(pd.DataFrame):
         print(self.describe().T, end="\n--------------------------------------------------------------\n")
         print("Descriptive Statistics of Categorical Data:", end="\n\n")
         for x in self.columns:
-            if self[x].dtype != 'object' and self[x].dtype != 'category' and self[x].dtype != 'bool':
+            if self[x].dtype != 'object' and self[x].dtype.name != 'category' and self[x].dtype != 'bool':
                 continue
             else:
                 print(self.describe(include="O").T, end="\n--------------------------------------------------------------\n")
