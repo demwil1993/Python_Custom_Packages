@@ -291,7 +291,7 @@ class graphs ():
         else:
             with plt.style.context(style):
                 fig = plt.figure(figsize=(17, 8))
-                order = df.groupby(categorical_column).mean().sort_values(numerical_column, ascending=False).index
+                order = df.groupby(categorical_column).mean(numeric_only=True).sort_values(numerical_column, ascending=False).index
                 ax = sns.barplot(data = df, x=categorical_column, y=numerical_column, order=order,
                                 errwidth=0)
                 plt.grid(False)
