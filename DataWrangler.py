@@ -60,7 +60,7 @@ class wrangler(pd.DataFrame):
         cat_cols = []
 
         for i in self.columns:
-            if(self[i].dtype == 'int64' or self[i].dtype == 'float64'):
+            if str(self[i].dtypes) in ['int64','float64']:
                 num_cols.append(i)
             else:
                 cat_cols.append(i)
