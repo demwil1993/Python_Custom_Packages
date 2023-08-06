@@ -34,7 +34,7 @@ class wrangler(pd.DataFrame):
     def strip_dataframe(self):
         self.columns = self.columns.str.strip()
         for x in self.columns:
-            if self[x].dtype == 'object' or self[x].dtype.name == 'category':
+            if str(self[x].dtypes) in ['object', 'category']:
                 self[x] = self[x].str.strip()
             else:
                 continue
