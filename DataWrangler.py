@@ -124,7 +124,7 @@ class wrangler(pd.DataFrame):
     def normalize(self, col):
         if col not in self.columns:
             raise TypeError(f"'{col}' not a column in dataframe")
-        elif (self[x].dtypes) not in ['int64', 'float64']:
+        elif str(self[x].dtypes) not in ['int64', 'float64']:
             raise  TypeError(f"'{col}' column not numerical")
         else:
             self[col] = (self[col] - self[col].mean()) / self[col].std()
@@ -141,7 +141,7 @@ class wrangler(pd.DataFrame):
 
     # This method uses the inter quartile range method to identify and remove outliers in column
     def remove_outlier_iqr(self, column):
-        if (self[column].dtype != 'int64' and self[column].dtype != 'float64'):
+        if str(self[column].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{column}] not a numerical datatype')
         else:
             """Detection"""
@@ -160,7 +160,7 @@ class wrangler(pd.DataFrame):
 
     # This method produces the upper and lower bound of the IQR method of a given column
     def outlier_limits_iqr(self, column):
-        if (self[column].dtype != 'int64' and self[column].dtype != 'float64'):
+        if str(self[column].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{column}] not a numerical datatype')
         else:
             Q1 = self[column].quantile(0.25)
@@ -174,7 +174,7 @@ class wrangler(pd.DataFrame):
     def show_outlier_rows(self):
         num_cols = []
         for x in self.columns:
-            if (self[x].dtype != 'int64' and self[x].dtype != 'float64'):
+            if str(self[x].dtypes) not in ['int64', 'float64']:
                 continue
             else:
                 num_cols.append(x)
@@ -242,9 +242,9 @@ class graphs ():
 
     # This method returns seaborn boxplot
     def categorical_boxplot(self, df, categorical_column, numerical_column, style):
-        if (df[categorical_column].dtype != 'object' and df[categorical_column].dtype.name != "category" and df[categorical_column].dtype != 'bool'):
+        if str(df[categorical_column].dtypes) not in ['object', 'category', 'bool']:
             raise TypeError(f'[{categorical_column}] not a categorical datatype')
-        elif df[numerical_column].dtype != 'int64' and df[numerical_column].dtype != "float64":
+        elif str(df[numerical_column].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{numerical_column}] not a numerical datatype')
         else:
             with plt.style.context(style):
@@ -268,11 +268,11 @@ class graphs ():
 
     # This method returns seaborn boxplot with color encoding from a certian column
     def categorical_boxplot_with_hue(self, df, categorical_column, numerical_column, hue_column, style):
-        if (df[categorical_column].dtype != 'object' and df[categorical_column].dtype.name != "category" and df[categorical_column].dtype != 'bool'):
+        if str(df[categorical_column].dtypes) not in ['object', 'category', 'bool']:
             raise TypeError(f'[{categorical_column}] not a categorical datatype')
-        elif df[numerical_column].dtype != 'int64' and df[numerical_column].dtype != "float64":
+        elif str(df[numerical_column].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{numerical_column}] not a numerical datatype')
-        elif (df[hue_column].dtype != 'object' and df[hue_column].dtype.name != "category" and df[hue_column].dtype != 'bool'):
+        elif str(df[hue_column].dtypes) not in ['object', 'category', 'bool']:
             raise TypeError(f'[{hue_column}] not a categorical datatype')
         else:
             with plt.style.context(style):
@@ -284,9 +284,9 @@ class graphs ():
 
     # This method returns seaborn bivariate barplot
     def categorical_barplot(self, df, categorical_column, numerical_column, style):
-        if (df[categorical_column].dtype != 'object' and df[categorical_column].dtype.name != "category" and df[categorical_column].dtype != 'bool'):
+        if str(df[categorical_column].dtypes) not in ['object', 'category', 'bool']:
             raise TypeError(f'[{categorical_column}] not a categorical datatype')
-        elif df[numerical_column].dtype != 'int64' and df[numerical_column].dtype != "float64":
+        elif str(df[numerical_column].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{numerical_column}] not a numerical datatype')
         else:
             with plt.style.context(style):
@@ -306,18 +306,16 @@ class graphs ():
 
     # This method returns seaborn bivariate barplot with color encoding from a certian column
     def categorical_barplot_with_hue(self, df, categorical_column, numerical_column, hue_column, style):
-        if (df[categorical_column].dtype != 'object' and df[categorical_column].dtype.name != "category" and df[
-            categorical_column].dtype != 'bool'):
+        if str(df[categorical_column].dtypes) not in ['object', 'category', 'bool']:
             raise TypeError(f'[{categorical_column}] not a categorical datatype')
-        elif df[numerical_column].dtype != 'int64' and df[numerical_column].dtype != "float64":
+        elif str(df[numerical_column].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{numerical_column}] not a numerical datatype')
-        elif (df[hue_column].dtype != 'object' and df[hue_column].dtype.name != "category" and df[
-            hue_column].dtype != 'bool'):
+        elif str(df[hue_column].dtypes) not in ['object', 'category', 'bool']:
             raise TypeError(f'[{hue_column}] not a categorical datatype')
         else:
             with plt.style.context(style):
                 fig = plt.figure(figsize=(17, 8))
-                order = df.groupby(categorical_column).mean().sort_values(numerical_column, ascending=False).index
+                order = df.groupby(categorical_column).mean(numeric_only=True).sort_values(numerical_column, ascending=False).index
                 ax = sns.barplot(data = df, x=categorical_column, y=numerical_column, hue=hue_column, order=order,
                              errwidth=0)
                 plt.grid(False)
@@ -332,11 +330,11 @@ class graphs ():
 
     # This method returns seaborn scatterplot with color encoding from a certian column
     def scatterplot_with_hue(self, df, num_col1, num_col2, hue_col, style):
-        if df[num_col1].dtype != 'int64' and df[num_col1].dtype != "float64":
+        if str(df[num_col1].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col1}] not a numerical datatype')
-        elif df[num_col2].dtype != 'int64' and df[num_col2].dtype != "float64":
+        elif str(df[num_col2].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col2}] not a numerical datatype')
-        elif (df[hue_col].dtype != 'object' and df[hue_col].dtype.name != "category" and df[hue_col].dtype != 'bool'):
+        elif str(df[hue_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{hue_col}] not a categorical datatype')
         else:
             with plt.style.context(style):
@@ -348,9 +346,9 @@ class graphs ():
 
     # This method returns seaborn scatterplot
     def scatterplot(self, df, num_col1, num_col2, style):
-        if df[num_col1].dtype != 'int64' and df[num_col1].dtype != "float64":
+        if str(df[num_col1].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col1}] not a numerical datatype')
-        elif df[num_col2].dtype != 'int64' and df[num_col2].dtype != "float64":
+        elif str(df[num_col2].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col2}] not a numerical datatype')
         else:
             with plt.style.context(style):
@@ -362,9 +360,9 @@ class graphs ():
 
     # This method returns seaborn joiintplot with regression line
     def jointplot(self, df, num_col1, num_col2, style):
-        if df[num_col1].dtype != 'int64' and df[num_col1].dtype != "float64":
+        if str(df[num_col1].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col1}] not a numerical datatype')
-        elif df[num_col2].dtype != 'int64' and df[num_col2].dtype != "float64":
+        elif str(df[num_col2].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col2}] not a numerical datatype')
         else:
             with plt.style.context(style):
@@ -393,17 +391,17 @@ class graphs ():
                 plt.title(f"Heatmap of {columns}")
             plt.show()
 
-    # This method takes a pivot table anf makes a multivarite heatmap
+    # This method takes a pivot table and makes a multivarite heatmap
     def multi_heatmap(self, df, index, column, values, style):
         if index not in df.columns:
             raise TypeError(f"{index} column not in dataframe")
-        elif (df[index].dtype != 'object' and df[index].dtype.name != "category" and df[index].dtype != 'bool'):
+        elif str(df[index].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{x_column}] not a categorical datatype')
         elif column not in df.columns:
             raise TypeError(f"{column} column not in dataframe")
         elif values not in df.columns:
             raise TypeError(f"{values} column not in dataframe")
-        elif df[values].dtype != 'int64' and df[values].dtype != "float64":
+        elif str(df[values].dtypes) not in ['int64','float64']:
             raise TypeError(f'[{values}] not a numerical datatype')
         else:
             with plt.style.context(style):
@@ -452,9 +450,9 @@ class graphs ():
 
     # This method returns seaborn line graph
     def lineplot(self, df, x_column, y_column, style, ci=None):
-        if (df[x_column].dtype != 'object' and df[x_column].dtype.name != "category" and df[x_column].dtype != 'bool'):
+        if str(df[x_column].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{x_column}] not a categorical datatype')
-        elif df[y_column].dtype != 'int64' and df[y_column].dtype != "float64":
+        elif str(df[y_column].dtypes) not in ['int64','float64']:
             raise TypeError(f'[{y_column}] not a numerical datatype')
         else:
             with plt.style.context(style):
@@ -467,11 +465,11 @@ class graphs ():
 
     # This method returns seaborn line graph with color encoding from a certian column
     def lineplot_with_hue(self, df, x_column, y_column, hue_column, style, ci=None):
-        if (df[x_column].dtype != 'object' and df[x_column].dtype.name != "category" and df[x_column].dtype != 'bool'):
+        if str(df[x_column].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{x_column}] not a categorical datatype')
-        elif df[y_column].dtype != 'int64' and df[y_column].dtype != "float64":
+        elif str(df[y_column].dtypes) not in ['int64','float64']:
             raise TypeError(f'[{y_column}] not a numerical datatype')
-        elif (df[hue_column].dtype != 'object' and df[hue_column].dtype.name != "category" and df[hue_column].dtype != 'bool'):
+        elif str(df[hue_column].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{hue_column}] not a categorical datatype')
         else:
             with plt.style.context(style):
@@ -484,7 +482,7 @@ class graphs ():
 
     # This method returns a pie chart
     def pie_chart(self, df, column, style):
-        if (df[column].dtype != 'object' and df[column].dtype.name != "category" and df[column].dtype != 'bool'):
+        if str(df[column].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{column}] not a categorical datatype')
         else:
             with plt.style.context(style):
@@ -499,7 +497,7 @@ class graphs ():
 
     # This method returns a donut pie chart
     def donut_pie_chart(self, df, column, style):
-        if (df[column].dtype != 'object' and df[column].dtype.name != "category" and df[column].dtype != 'bool'):
+        if str(df[column].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{column}] not a categorical datatype')
         else:
             with plt.style.context(style):
@@ -517,9 +515,9 @@ class graphs ():
 
     # This method shows seaborn violinplot
     def violinplot(self, df, cat_col, num_col, style):
-        if (df[cat_col].dtype != 'object' and df[cat_col].dtype.name != "category" and df[cat_col].dtype != 'bool'):
+        if str(df[cat_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif df[num_col].dtype != 'int64' and df[num_col].dtype != "float64":
+        elif str(df[num_col].dtypes) not in ['int64','float64']:
             raise TypeError(f'[{num_col}] not a numerical datatype')
         else:
             with plt.style.context(style):
@@ -543,11 +541,11 @@ class graphs ():
 
     # This method shows seaborn violinplot with grouping
     def violinplot_with_hue(self, df, cat_col, num_col, hue_col, style):
-        if (df[cat_col].dtype != 'object' and df[cat_col].dtype.name != "category" and df[cat_col].dtype != 'bool'):
+        if str(df[cat_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif df[num_col].dtype != 'int64' and df[num_col].dtype != "float64":
+        elif str(df[num_col].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col}] not a numerical datatype')
-        elif (df[hue_col].dtype != 'object' and df[hue_col].dtype.name != "category" and df[hue_col].dtype != 'bool'):
+        elif str(df[hue_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{hue_col}] not a categorical datatype')
         else:
             with plt.style.context(style):
