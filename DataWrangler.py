@@ -70,12 +70,12 @@ class wrangler(pd.DataFrame):
     # This method identifies numerical and categorical columns
     def column_analysis(self):
         category_columns = [col for col in self.columns if str(self[col].dtypes) in ['object', 'category', 'bool']]
-        numerical_but_categorical = [col for col in self.columns if self[col].nunique() < 10 and self[col].dtypes in ['int64', 'float64']]
+        numerical_but_categorical = [col for col in self.columns if self[col].nunique() < 10 and str(self[col].dtypes) in ['int64', 'float64']]
         category_with_hi_cardinality = [col for col in self.columns if self[col].nunique() > 50 and str(self[col].dtypes) in ['category', 'object']]
         category_columns = category_columns + numerical_but_categorical
         category_columns = [col for col in category_columns if col not in category_with_hi_cardinality]
 
-        numerical_columns = [col for col in self.columns if self[col].dtypes in ['int64','float64']]
+        numerical_columns = [col for col in self.columns if (self[col].dtypes) in ['int64','float64']]
         numerical_columns = [col for col in numerical_columns if col not in category_columns]
 
         # print analysis
@@ -94,7 +94,7 @@ class wrangler(pd.DataFrame):
                             'Ratio':round(100*data[column_name].value_counts() / len(data), 2)}))
         print('-'*40)
         if plot:
-            if self[column_name].dtypes == 'bool':
+            if str(self[column_name].dtypes) == 'bool':
                 sns.countplot(x=self[column_name].astype(int), data=data)
                 plt.show(block=True)
             else:
@@ -124,7 +124,7 @@ class wrangler(pd.DataFrame):
     def normalize(self, col):
         if col not in self.columns:
             raise TypeError(f"'{col}' not a column in dataframe")
-        elif self[x].dtype != 'int64' and self[x].dtype != 'float64':
+        elif (self[x].dtypes) not in ['int64', 'float64']:
             raise  TypeError(f"'{col}' column not numerical")
         else:
             self[col] = (self[col] - self[col].mean()) / self[col].std()
@@ -132,10 +132,10 @@ class wrangler(pd.DataFrame):
     # This method performs imputation an entire DataFrame regardless of datatype
     def complete_imputation(self):
         for x in self.columns:
-            if (self[x].dtype == 'int64' or self[x].dtype == 'float64') and (self[x].isna().any() == True):
+            if str(self[x].dtypes) in ['int64', 'float64'] and (self[x].isna().any() == True):
                 mean = self[x].mean()
                 self[x].fillna(mean, inplace=True) # fill numerical missing data with mean of column
-            elif (self[x].dtype == 'object' or self[x].dtype.name == "category" or self[x].dtype == 'bool') and (self[x].isna().any() == True):
+            elif str(self[x].dtypes) in ['object', 'category', 'bool'] and (self[x].isna().any() == True):
                 mode = self[x].mode().iloc[0]
                 self[x].fillna(mode, inplace=True) # fill categorical missing data with mode of column
 
