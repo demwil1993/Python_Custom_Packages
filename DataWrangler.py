@@ -557,9 +557,9 @@ class graphs ():
 
     # The method creates circular bar plot
     def circular_barplot(self, df, cat_col, num_col, style, bar_color):
-        if (df[cat_col].dtype != 'object' and df[cat_col].dtype.name != "category" and df[cat_col].dtype != 'bool'):
+        if str(df[cat_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif df[num_col].dtype != 'int64' and df[num_col].dtype != "float64":
+        elif str(df[num_col].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col}] not a numerical datatype')
         else:
             with plt.style.context(style):
@@ -622,9 +622,9 @@ class graphs ():
 
     # This method creates race track bar plot
     def race_track_plot(self, df, cat_col, num_col, style, bar_color):
-        if (df[cat_col].dtype != 'object' and df[cat_col].dtype.name != "category" and df[cat_col].dtype != 'bool'):
+        if str(df[cat_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif df[num_col].dtype != 'int64' and df[num_col].dtype != "float64":
+        elif str(df[num_col].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col}] not a numerical datatype')
         else:
             with plt.style.context(style):
@@ -661,9 +661,9 @@ class graphs ():
 
     # This method produces an interactive Treemap
     def treemap(self, df, cat_col, num_col, style, color_scale):
-        if (df[cat_col].dtype != 'object' and df[cat_col].dtype.name != "category" and df[cat_col].dtype != 'bool'):
+        if str(df[cat_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif df[num_col].dtype != 'int64' and df[num_col].dtype != "float64":
+        elif str(df[num_col].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col}] not a numerical datatype')
         else:
             with plt.style.context(style):
@@ -681,9 +681,9 @@ class graphs ():
 
     # This method produces interactive pie chart with percentages
     def percentage_pie_chart(self, df, cat_col, num_col, bar_col):
-        if (df[cat_col].dtype != 'object' and df[cat_col].dtype.name != "category" and df[cat_col].dtype != 'bool'):
+        if str(df[cat_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif df[num_col].dtype != 'int64' and df[num_col].dtype != "float64":
+        elif str(df[num_col].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col}] not a numerical datatype')
         else:
             df = df.groupby([cat_col])[num_col].mean().round(0).reset_index()
@@ -697,9 +697,9 @@ class graphs ():
 
     # This method produces interactive bar chart
     def interactive_bar_chart(self, df, cat_col, num_col, bar_col):
-        if (df[cat_col].dtype != 'object' and df[cat_col].dtype.name != "category" and df[cat_col].dtype != 'bool'):
+        if str(df[cat_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif df[num_col].dtype != 'int64' and df[num_col].dtype != "float64":
+        elif str(df[num_col].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col}] not a numerical datatype')
         else:
             df = df.groupby([cat_col])[num_col].mean().round(0).reset_index()
@@ -717,9 +717,9 @@ class graphs ():
 
     # This method creates interactive polar chart
     def polar_line_chart(self, df, cat_col, num_col, bar_col):
-        if (df[cat_col].dtype != 'object' and df[cat_col].dtype.name != "category" and df[cat_col].dtype != 'bool'):
+        if str(df[cat_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif df[num_col].dtype != 'int64' and df[num_col].dtype != "float64":
+        elif str(df[num_col].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col}] not a numerical datatype')
         else:
             df = df.groupby([cat_col])[num_col].mean().round(0).reset_index()
@@ -733,9 +733,9 @@ class graphs ():
 
     # This method creates an interactive circular bubble chart
     def circular_bubble_chart(self, df, cat_col, num_col, bar_col):
-        if (df[cat_col].dtype != 'object' and df[cat_col].dtype.name != "category" and df[cat_col].dtype != 'bool'):
+        if str(df[cat_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif df[num_col].dtype != 'int64' and df[num_col].dtype != "float64":
+        elif str(df[num_col].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col}] not a numerical datatype')
         else:
             df = df.groupby([cat_col])[num_col].mean().round(0).reset_index()
@@ -765,15 +765,15 @@ class graphs ():
     def regression_subplots(self, df, cat_col, num_col1, num_col2, style, sub_1, sub_2):
         if cat_col not in df.columns:
             raise TypeError(f'{cat_col} column not in dataframe')
-        elif (df[cat_col].dtype != 'object' and df[cat_col].dtype.name != "category" and df[cat_col].dtype != 'bool'):
+        elif str(df[cat_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
         elif num_col1 not in df.columns:
             raise TypeError(f'{num_col1} column not in dataframe')
-        elif df[num_col1].dtype != 'int64' and df[num_col1].dtype != "float64":
+        elif str(df[num_col1].dtypes) not in ['int64','float64']:
             raise TypeError(f'[{num_col1}] not a numerical datatype')
         elif num_col2 not in df.columns:
             raise TypeError(f'{num_col2} column not in dataframe')
-        elif df[num_col2].dtype != 'int64' and df[num_col2].dtype != "float64":
+        elif str(df[num_col2].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col2}] not a numerical datatype')
         else:
             with plt.style.context(style):
@@ -796,7 +796,7 @@ class graphs ():
     def histogram_subplots(self, df, style, sub_1, sub_2):
         num_cols = []
         for x in df.columns:
-            if df[x].dtype == 'int64' or df[x].dtype == 'float64':
+            if str(df[x].dtypes) in ['int64','float64']:
                 num_cols.append(x)
             else:
                 continue
@@ -815,7 +815,7 @@ class graphs ():
     def count_subplots(self, df, style, sub_1, sub_2):
         cat_cols = []
         for x in df.columns:
-            if df[x].dtype == 'int64' or df[x].dtype == 'float64':
+            if str(df[x].dtypes) in ['int64','float64']:
                 continue
             else:
                 cat_cols.append(x)
@@ -834,17 +834,17 @@ class graphs ():
     def scatter_subplots(self, df, num_col, hue_col, style, sub_1, sub_2):
         if num_col not in df.columns:
             raise TypeError(f"{num_col} not a column in dataframe")
-        elif df[num_col].dtype != 'int64' and df[num_col].dtype != "float64":
+        elif str(df[num_col].dtypes) not in ['int64','float64']:
             raise TypeError(f'[{num_col1}] not a numerical datatype')
         elif hue_col not in df.columns:
             raise TypeError(f"{hue_col} not a column in dataframe")
-        elif (df[hue_col].dtype != 'object' and df[hue_col].dtype.name != "category" and df[hue_col].dtype != 'bool'):
+        elif str(df[hue_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{hue_col}] not a categorical datatype')
         else:
             with plt.style.context(style):
                 num_cols = []
                 for x in df.columns:
-                    if df[x].dtype == 'int64' or df[x].dtype == 'float64':
+                    if str(df[x].dtypes) in ['int64','float64']:
                         num_cols.append(x)
                     else:
                         continue
@@ -863,7 +863,7 @@ class graphs ():
     def box_subplots(self, df, style, sub_1, sub_2):
         num_cols = []
         for x in df.columns:
-            if df[x].dtype == 'int64' or df[x].dtype == 'float64':
+            if str(df[x].dtypes) in ['int64','float64']:
                 num_cols.append(x)
             else:
                 continue
@@ -881,14 +881,13 @@ class graphs ():
     def bar_subplots(self, df, cat_col, style, sub_1, sub_2):
         if cat_col not in df.columns:
             raise TypeError(f"{cat_col} not a column in dataframe")
-        elif (df[cat_col].dtype != 'object' and df[cat_col].dtype.name != "category" and df[
-            cat_col].dtype != 'bool'):
+        elif str(df[cat_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
         else:
             with plt.style.context(style):
                 num_cols = []
                 for x in df.columns:
-                    if df[x].dtype == 'int64' or df[x].dtype == 'float64':
+                    if str(df[x].dtypes) in ['int64','float64']:
                         num_cols.append(x)
                     else:
                         continue
