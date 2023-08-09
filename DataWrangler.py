@@ -897,7 +897,7 @@ class graphs ():
                 for j in num_cols:
                     plt.subplot(sub_1, sub_2, k)
                     plt.xlabel(j)
-                    order = df.groupby(cat_col).mean().sort_values(j, ascending=False).index
+                    order = df.groupby(cat_col).mean(numeric_only=True).sort_values(j, ascending=False).index
                     ax = sns.barplot(x=cat_col, y=j, order=order, palette='magma', errwidth=0, data=df)
                     ax.set_title(f"{cat_col.title().replace('_', ' ')} vs. {j.title().replace('_', ' ')} Bar Chart")
                     plt.grid(False)
