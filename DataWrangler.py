@@ -40,15 +40,8 @@ class wrangler(pd.DataFrame):
                 continue
     # This method provides summary statistics for categorical and numerical data columns
     def dataframe_anaylsis(self):
-        print("Descriptive Statistics of Numerical Data:", end="\n\n")
-        print(self.describe().T, end="\n--------------------------------------------------------------\n")
-        print("Descriptive Statistics of Categorical Data:", end="\n\n")
-        for x in self.columns:
-            if str(self[x].dtypes) not in ['object', 'category', 'bool']:
-                continue
-            else:
-                print(self.describe(include="O").T, end="\n--------------------------------------------------------------\n")
-                break
+        print("Descriptive Statistics of Data:", end="\n\n")
+        print(self.describe(include=['object', 'float', 'int', 'category', 'bool']).T, end="\n--------------------------------------------------------------\n")
         print("Check if any Columns have Null Values:", end="\n\n")
         print(self.isnull().sum(), end="\n--------------------------------------------------------------\n")
         print("Check for Duplicated Rows in Dataframe:", end="\n\n")
