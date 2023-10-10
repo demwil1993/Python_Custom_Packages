@@ -63,12 +63,12 @@ class wrangler(pd.DataFrame):
     # This method identifies numerical and categorical columns
     def column_analysis(self):
         category_columns = [col for col in self.columns if str(self[col].dtypes) in ['object', 'category', 'bool']]
-        numerical_but_categorical = [col for col in self.columns if self[col].nunique() < 10 and str(self[col].dtypes) in ['int64', 'float64']]
+        numerical_but_categorical = [col for col in self.columns if self[col].nunique() < 10 and str(self[col]).dtypes in ['int64', 'float64']]
         category_with_hi_cardinality = [col for col in self.columns if self[col].nunique() > 50 and str(self[col].dtypes) in ['category', 'object']]
         category_columns = category_columns + numerical_but_categorical
         category_columns = [col for col in category_columns if col not in category_with_hi_cardinality]
 
-        numerical_columns = [col for col in self.columns if (self[col].dtypes) in ['int64','float64']]
+        numerical_columns = [col for col in self.columns if str(self[col].dtypes) in ['int64','float64']]
         numerical_columns = [col for col in numerical_columns if col not in category_columns]
 
         # print analysis
@@ -217,36 +217,37 @@ class wrangler(pd.DataFrame):
 
 """ New class for graphing values of dataset"""
 class graphs ():
-    def __init__(self):
-        pass
+    def __init__(self, df, style='ggplot'):
+        self.df = df
+        self.style = style
 
     """ Single Visualization Graphs """
     # This method returns seaborn histogram
-    def histogram(self, df, column, style):
+    def histogram(self, column):
         if type(column) != str:
             raise TypeError(f'[{column}] parameter is not a string datatype')
         else:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 fig = plt.figure(figsize=(17, 8))
-                sns.histplot(data=df, x = df[column], kde = True)
+                sns.histplot(data=self.df, x = self.df[column], kde = True)
                 plt.grid(False)
                 plt.title(f"{column.title().replace('_', ' ')} Histogram")
             plt.show()
 
     # This method returns seaborn boxplot
-    def categorical_boxplot(self, df, categorical_column, numerical_column, style):
-        if str(df[categorical_column].dtypes) not in ['object', 'category', 'bool']:
+    def categorical_boxplot(self, categorical_column, numerical_column):
+        if str(self.df[categorical_column].dtypes) not in ['object', 'category', 'bool']:
             raise TypeError(f'[{categorical_column}] not a categorical datatype')
-        elif str(df[numerical_column].dtypes) not in ['int64', 'float64']:
+        elif str(self.df[numerical_column].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{numerical_column}] not a numerical datatype')
         else:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 fig = plt.figure(figsize=(17, 8))
-                ax = sns.boxplot(data= df, x = categorical_column, y = numerical_column)
+                ax = sns.boxplot(data= self.df, x = categorical_column, y = numerical_column)
 
                 # calculate the number of obserations for each group and median to position labels
-                medians = df.groupby([categorical_column])[numerical_column].median()
-                obs = df[categorical_column].value_counts().reindex(medians.index).values
+                medians = self.df.groupby([categorical_column])[numerical_column].median()
+                obs = self.df[categorical_column].value_counts().reindex(medians.index).values
                 medians = medians.values
                 obs = [str(x) for x in obs.tolist()]
                 obs = ['n: '+i for i in obs]
@@ -260,108 +261,79 @@ class graphs ():
             plt.show()
 
     # This method returns seaborn boxplot with color encoding from a certian column
-    def categorical_boxplot_with_hue(self, df, categorical_column, numerical_column, hue_column, style):
-        if str(df[categorical_column].dtypes) not in ['object', 'category', 'bool']:
+    def categorical_boxplot_with_hue(self, categorical_column, numerical_column, hue_column):
+        if str(self.df[categorical_column].dtypes) not in ['object', 'category', 'bool']:
             raise TypeError(f'[{categorical_column}] not a categorical datatype')
-        elif str(df[numerical_column].dtypes) not in ['int64', 'float64']:
+        elif str(self.df[numerical_column].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{numerical_column}] not a numerical datatype')
-        elif str(df[hue_column].dtypes) not in ['object', 'category', 'bool']:
+        elif str(self.df[hue_column].dtypes) not in ['object', 'category', 'bool']:
             raise TypeError(f'[{hue_column}] not a categorical datatype')
         else:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 fig = plt.figure(figsize=(17,8))
-                sns.boxplot(data = df, x = categorical_column, y = numerical_column,
+                sns.boxplot(data = self.df, x = categorical_column, y = numerical_column,
                             hue= hue_column, showmeans=True)
                 plt.grid(False)
             plt.show()
 
-    # This method returns seaborn bivariate barplot
-    def categorical_barplot(self, df, categorical_column, numerical_column, style):
-        if str(df[categorical_column].dtypes) not in ['object', 'category', 'bool']:
-            raise TypeError(f'[{categorical_column}] not a categorical datatype')
-        elif str(df[numerical_column].dtypes) not in ['int64', 'float64']:
-            raise TypeError(f'[{numerical_column}] not a numerical datatype')
-        else:
-            with plt.style.context(style):
-                fig = plt.figure(figsize=(17, 8))
-                order = df.groupby(categorical_column).mean(numeric_only=True).sort_values(numerical_column, ascending=False).index
-                ax = sns.barplot(data = df, x=categorical_column, y=numerical_column, order=order,
-                                errwidth=0)
-                plt.grid(False)
-
-                for p in ax.patches:
-                    ax.annotate(format(p.get_height(), '.1f'),
-                                (p.get_x() + p.get_width() / 2,
-                                p.get_height()), ha='center', va='center',
-                                size=15, xytext=(0,8),
-                                textcoords='offset points')
-            plt.show()
-
-    # This method returns seaborn bivariate barplot with color encoding from a certian column
-    def categorical_barplot_with_hue(self, df, categorical_column, numerical_column, hue_column, style):
-        if str(df[categorical_column].dtypes) not in ['object', 'category', 'bool']:
-            raise TypeError(f'[{categorical_column}] not a categorical datatype')
-        elif str(df[numerical_column].dtypes) not in ['int64', 'float64']:
-            raise TypeError(f'[{numerical_column}] not a numerical datatype')
-        elif str(df[hue_column].dtypes) not in ['object', 'category', 'bool']:
-            raise TypeError(f'[{hue_column}] not a categorical datatype')
-        else:
-            with plt.style.context(style):
-                fig = plt.figure(figsize=(17, 8))
-                order = df.groupby(categorical_column).mean(numeric_only=True).sort_values(numerical_column, ascending=False).index
-                ax = sns.barplot(data = df, x=categorical_column, y=numerical_column, hue=hue_column, order=order,
-                             errwidth=0)
-                plt.grid(False)
-
-                for p in ax.patches:
-                    ax.annotate(format(p.get_height(), '.1f'),
-                                (p.get_x() + p.get_width() / 2,
-                                p.get_height()), ha='center', va='center',
-                                size=15, xytext=(0,8),
-                                textcoords='offset points')
-            plt.show()
-
-    # This method returns seaborn scatterplot with color encoding from a certian column
-    def scatterplot_with_hue(self, df, num_col1, num_col2, hue_col, style):
-        if str(df[num_col1].dtypes) not in ['int64', 'float64']:
-            raise TypeError(f'[{num_col1}] not a numerical datatype')
-        elif str(df[num_col2].dtypes) not in ['int64', 'float64']:
-            raise TypeError(f'[{num_col2}] not a numerical datatype')
-        elif str(df[hue_col].dtypes) not in ['object','category','bool']:
+    # This method returns seaborn bivariate barplot with color encoding from a certian column if desired
+    def categorical_barplot(self, cat_column, num_column, hue_col=None):
+        if str(self.df[cat_column].dtypes) not in ['object', 'category', 'bool']:
+            raise TypeError(f'[{cat_column}] not a categorical datatype')
+        elif str(self.df[num_column].dtypes) not in ['int64', 'float64']:
+            raise TypeError(f'[{num_column}] not a numerical datatype')
+        elif hue_col != None and str(self.df[hue_col].dtypes) not in ['object', 'category', 'bool']:
             raise TypeError(f'[{hue_col}] not a categorical datatype')
         else:
-            with plt.style.context(style):
-                fig = plt.figure(figsize=(17,8))
-                sns.scatterplot(data = df, x=num_col1, y=num_col2, hue=hue_col)
+            with plt.style.context(self.style):
+                fig = plt.figure(figsize=(17, 8))
+                order = self.df.groupby(cat_column).mean(numeric_only=True).sort_values(num_column, ascending=False).index
+                ax = sns.barplot(data = self.df, x=cat_column, y=num_column, hue=hue_col, order=order, errwidth=0)
                 plt.grid(False)
-                plt.legend(loc='upper center', title=hue_col)
+                if hue_col == None:
+                    plt.title(f"Average {num_column.title().replace('_', ' ')} by {cat_column.title().replace('_', ' ')} barplot")
+                else:
+                    plt.title(f"Average {num_column.title().replace('_', ' ')} by {cat_column.title().replace('_', ' ')} with {hue_col.title().replace('_', ' ')} grouping barplot")
+
+                for p in ax.patches:
+                    ax.annotate(format(p.get_height(), '.1f'),
+                                (p.get_x() + p.get_width() / 2,
+                                p.get_height()), ha='center', va='center',
+                                size=15, xytext=(0,8),
+                                textcoords='offset points')
             plt.show()
 
-    # This method returns seaborn scatterplot
-    def scatterplot(self, df, num_col1, num_col2, style):
-        if str(df[num_col1].dtypes) not in ['int64', 'float64']:
+    # This method returns seaborn scatterplot with color encoding from a certian column if desired
+    def scatterplot(self, num_col1, num_col2, hue_col=None):
+        if str(self.df[num_col1].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col1}] not a numerical datatype')
-        elif str(df[num_col2].dtypes) not in ['int64', 'float64']:
+        elif str(self.df[num_col2].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col2}] not a numerical datatype')
+        elif hue_col != None and str(self.df[hue_col].dtypes) not in ['object','category','bool']:
+            raise TypeError(f'[{hue_col}] not a categorical datatype')
         else:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 fig = plt.figure(figsize=(17,8))
-                sns.scatterplot(data = df, x=num_col1, y=num_col2)
+                sns.scatterplot(data = self.df, x=num_col1, y=num_col2, hue=hue_col)
                 plt.grid(False)
-                plt.title(f"{num_col1.title().replace('_', ' ')} vs. {num_col2.title().replace('_', ' ')} Scatterplot")
+                if hue_col == None:
+                    plt.title(f"{num_col1.title().replace('_', ' ')} vs. {num_col2.title().replace('_', ' ')} Scatterplot")
+                else:
+                    plt.legend(loc='upper center', title=hue_col)
+                    plt.title(f"{num_col1.title().replace('_', ' ')} vs. {num_col2.title().replace('_', ' ')} with {hue_col.title().replace('_', ' ')} grouping Scatterplot")
             plt.show()
 
     # This method returns seaborn joiintplot with regression line
-    def jointplot(self, df, num_col1, num_col2, style):
-        if str(df[num_col1].dtypes) not in ['int64', 'float64']:
+    def jointplot(self, num_col1, num_col2):
+        if str(self.df[num_col1].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col1}] not a numerical datatype')
-        elif str(df[num_col2].dtypes) not in ['int64', 'float64']:
+        elif str(self.df[num_col2].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col2}] not a numerical datatype')
         else:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 fig = plt.figure(figsize=(17,8))
-                g = sns.jointplot(data=df, x=num_col1, y=num_col2, kind='reg')
-                r, p = stats.pearsonr(df[num_col1].values, df[num_col2].values)
+                g = sns.jointplot(data=self.df, x=num_col1, y=num_col2, kind='reg')
+                r, p = stats.pearsonr(self.df[num_col1].values, self.df[num_col2].values)
                 g.ax_joint.annotate(f'$\\rho = {r:.3f}, p = {p:.3f}$',
                                     xy=(0.1, 0.9), xycoords='axes fraction',
                                     ha='left', va='center',
@@ -373,113 +345,85 @@ class graphs ():
             plt.show()
 
     # This method returns seaborn heatmap
-    def list_heatmap(self, df, columns, style):
+    def list_heatmap(self, columns):
         if type(columns) != list:
             raise TypeError('parameter not a list')
         else:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 fig = plt.figure(figsize=(17, 8))
-                df_new = df[columns]
+                df_new = self.df[columns]
                 sns.heatmap(df_new.corr(), annot=True, cmap='winter')
                 plt.title(f"Heatmap of {columns}")
             plt.show()
 
     # This method takes a pivot table and makes a multivarite heatmap
-    def multi_heatmap(self, df, index, column, values, style):
-        if index not in df.columns:
+    def multi_heatmap(self, index, column, values):
+        if index not in self.df.columns:
             raise TypeError(f"{index} column not in dataframe")
-        elif str(df[index].dtypes) not in ['object','category','bool']:
-            raise TypeError(f'[{x_column}] not a categorical datatype')
-        elif column not in df.columns:
+        elif str(self.df[index].dtypes) not in ['object','category','bool']:
+            raise TypeError(f'[{index}] not a categorical datatype')
+        elif column not in self.df.columns:
             raise TypeError(f"{column} column not in dataframe")
-        elif values not in df.columns:
+        elif values not in self.df.columns:
             raise TypeError(f"{values} column not in dataframe")
-        elif str(df[values].dtypes) not in ['int64','float64']:
+        elif str(self.df[values].dtypes) not in ['int64','float64']:
             raise TypeError(f'[{values}] not a numerical datatype')
         else:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 fig = plt.figure(figsize=(17, 8))
-                sns.heatmap(df.pivot_table(index=index, columns=column, values=values))
+                sns.heatmap(self.df.pivot_table(index=index, columns=column, values=values))
             plt.show()
 
-    # This method returns seaborn univariate barplot
-    def countplot(self, df, column, style):
-        if column not in df.columns:
+    # This method returns seaborn univariate barplot with grouping if desired
+    def countplot(self, column, hue_col=None):
+        if column not in self.df.columns:
             raise TypeError(f'{column} column not in dataframe')
-        else:
-            with plt.style.context(style):
-                fig = plt.figure(figsize=(17, 8))
-                ax = sns.countplot(data = df, x=column, order=df[column].value_counts(normalize=True).index)
-                plt.grid(False)
-                plt.title(f"{column.title().replace('_', ' ')} Countplot")
-
-                total = len(df[column])
-                for p in ax.patches:
-                    percentage = f'{100 * p.get_height() / total:.1f}%\n'
-                    x = p.get_x() + p.get_width() / 2
-                    y = p.get_height()
-                    ax.annotate(percentage, (x, y), ha='center', va='center', fontsize=11)
-            plt.show()
-
-    # This method returns seaborn univariate barplot with grouping
-    def countplot_with_hue(self, df, column, hue_col, style):
-        if column not in df.columns:
-            raise TypeError(f'{column} column not in dataframe')
-        elif hue_col not in df.columns:
+        elif hue_col not in self.df.columns and hue_col != None:
             raise TypeError(f'{hue_col} column not in dataframe')
         else:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 fig = plt.figure(figsize=(17, 8))
-                ax = sns.countplot(data = df, x=column, hue = hue_col, order = df[column].value_counts(normalize=True).index)
+                ax = sns.countplot(data = self.df, x=column, hue = hue_col, order = self.df[column].value_counts(normalize=True).index)
                 plt.grid(False)
-                plt.title(f"{column.title().replace('_', ' ')} Countplot with {hue_col.title().replace('_', ' ')} Categories")
+                if hue_col == None:
+                    plt.title(f"{column.title().replace('_', ' ')} Countplot")
+                else:
+                    plt.title(f"{column.title().replace('_', ' ')} Countplot with {hue_col.title().replace('_', ' ')} Categories")
 
-                total = len(df[column])
+                total = len(self.df[column])
                 for p in ax.patches:
                     percentage = f'{100 * p.get_height() / total:.1f}%\n'
                     x = p.get_x() + p.get_width() / 2
                     y = p.get_height()
                     ax.annotate(percentage, (x, y), ha='center', va='center', fontsize= 11)
-
-    # This method returns seaborn line graph
-    def lineplot(self, df, x_column, y_column, style, ci=None):
-        if str(df[x_column].dtypes) not in ['object','category','bool']:
-            raise TypeError(f'[{x_column}] not a categorical datatype')
-        elif str(df[y_column].dtypes) not in ['int64','float64']:
-            raise TypeError(f'[{y_column}] not a numerical datatype')
-        else:
-            with plt.style.context(style):
-                fig = plt.figure(figsize=(17, 8))
-                sns.lineplot(data = df, x = x_column, y = y_column, ci=None)
-                plt.grid(False)
-                plt.title(f"{x_column.title().replace('_', ' ')} vs. "
-                          f"{y_column.title().replace('_', ' ')} Lineplot")
             plt.show()
 
-    # This method returns seaborn line graph with color encoding from a certian column
-    def lineplot_with_hue(self, df, x_column, y_column, hue_column, style, ci=None):
-        if str(df[x_column].dtypes) not in ['object','category','bool']:
+    # This method returns seaborn line graph with color encoding from a certian column if desired
+    def lineplot(self, x_column, y_column, hue_column=None, errors=None):
+        if str(self.df[x_column].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{x_column}] not a categorical datatype')
-        elif str(df[y_column].dtypes) not in ['int64','float64']:
+        elif str(self.df[y_column].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{y_column}] not a numerical datatype')
-        elif str(df[hue_column].dtypes) not in ['object','category','bool']:
+        elif hue_column != None and str(self.df[hue_column].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{hue_column}] not a categorical datatype')
         else:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 fig = plt.figure(figsize=(17, 8))
-                sns.lineplot(data = df, x = x_column, y = y_column, hue = hue_column, ci = None)
+                sns.lineplot(data = self.df, x = x_column, y = y_column, hue = hue_column, errorbar = errors)
                 plt.grid(False)
-                plt.title(f"{x_column.title().replace('_', ' ')} vs. "
-                          f"{y_column.title().replace('_', ' ')} Lineplot")
+                if hue_column == None:
+                    plt.title(f"{x_column.title().replace('_', ' ')} vs. {y_column.title().replace('_', ' ')} Lineplot.")
+                else:
+                    plt.title(f"{x_column.title().replace('_', ' ')} vs. {y_column.title().replace('_', ' ')} Lineplot with {hue_column.title().replace('_', ' ')} grouping.")
             plt.show()
 
     # This method returns a pie chart
-    def pie_chart(self, df, column, style):
-        if str(df[column].dtypes) not in ['object','category','bool']:
+    def pie_chart(self, column):
+        if str(self.df[column].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{column}] not a categorical datatype')
         else:
-            with plt.style.context(style):
-                sorted_counts = df[column].value_counts()
+            with plt.style.context(self.style):
+                sorted_counts = self.df[column].value_counts()
                 fig, ax = plt.subplots(figsize=(8,8))
                 ax.pie(sorted_counts, labels= sorted_counts.index, startangle=90, counterclock=False,
                         autopct='%1.1f%%', textprops={'fontsize':15}, wedgeprops={'linewidth':3, 'edgecolor':'white'})
@@ -489,15 +433,15 @@ class graphs ():
             plt.show()
 
     # This method returns a donut pie chart
-    def donut_pie_chart(self, df, column, style):
-        if str(df[column].dtypes) not in ['object','category','bool']:
+    def donut_pie_chart(self, column):
+        if str(self.df[column].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{column}] not a categorical datatype')
         else:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 fig, ax = plt.subplots(figsize=(12,12))
                 # Create a circle at the center of the plot
                 my_circle = plt.Circle((0, 0), 0.7, color='black')
-                sorted_counts = df[column].value_counts()
+                sorted_counts = self.df[column].value_counts()
                 ax.pie(sorted_counts, labels=sorted_counts.index, startangle=90,
                        counterclock=False, wedgeprops={'width':0.5, 'linewidth':7, 'edgecolor':'black'},
                        autopct='%1.1f%%', pctdistance=0.85, textprops={'fontsize':14})
@@ -507,19 +451,19 @@ class graphs ():
             plt.show()
 
     # This method shows seaborn violinplot
-    def violinplot(self, df, cat_col, num_col, style):
-        if str(df[cat_col].dtypes) not in ['object','category','bool']:
+    def violinplot(self, cat_col, num_col):
+        if str(self.df[cat_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif str(df[num_col].dtypes) not in ['int64','float64']:
+        elif str(self.df[num_col].dtypes) not in ['int64','float64']:
             raise TypeError(f'[{num_col}] not a numerical datatype')
         else:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 fig = plt.figure(figsize=(17,8))
-                ax = sns.violinplot(data = df, x=cat_col, y=num_col)
+                ax = sns.violinplot(data = self.df, x=cat_col, y=num_col)
 
                 # calculate the number of obserations for each group and median to position labels
-                medians = df.groupby([cat_col])[num_col].median()
-                obs = df[cat_col].value_counts().reindex(medians.index).values
+                medians = self.df.groupby([cat_col])[num_col].median()
+                obs = self.df[cat_col].value_counts().reindex(medians.index).values
                 medians = medians.values
                 obs = [str(x) for x in obs.tolist()]
                 obs = ['n: ' + i for i in obs]
@@ -533,34 +477,34 @@ class graphs ():
             plt.show()
 
     # This method shows seaborn violinplot with grouping
-    def violinplot_with_hue(self, df, cat_col, num_col, hue_col, style):
-        if str(df[cat_col].dtypes) not in ['object','category','bool']:
+    def violinplot_with_hue(self, cat_col, num_col, hue_col):
+        if str(self.df[cat_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif str(df[num_col].dtypes) not in ['int64', 'float64']:
+        elif str(self.df[num_col].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col}] not a numerical datatype')
-        elif str(df[hue_col].dtypes) not in ['object','category','bool']:
+        elif str(self.df[hue_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{hue_col}] not a categorical datatype')
         else:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 fig  = plt.figure(figsize=(17,8))
-                sns.violinplot(data = df, x=cat_col, y=num_col, hue=hue_col)
+                sns.violinplot(data = self.df, x=cat_col, y=num_col, hue=hue_col)
                 plt.grid(False)
                 plt.legend(loc='upper center', title=hue_col.title().replace('_', ' '))
             plt.show()
 
     # The method creates circular bar plot
-    def circular_barplot(self, df, cat_col, num_col, style, bar_color):
-        if str(df[cat_col].dtypes) not in ['object','category','bool']:
+    def circular_barplot(self, cat_col, num_col, bar_color):
+        if str(self.df[cat_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif str(df[num_col].dtypes) not in ['int64', 'float64']:
+        elif str(self.df[num_col].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col}] not a numerical datatype')
         else:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 # Reorder dataframe
-                df = df.groupby([cat_col])[num_col].mean().round(0).reset_index()
+                df = self.df.groupby([cat_col])[num_col].mean(numeric_only=True).round(0).reset_index()
                 df = df.sort_values(by=[num_col])
 
-                pal = list(sns.color_palette(palette=bar_color, n_colors=len(self)).as_hex())
+                pal = list(sns.color_palette(palette=bar_color, n_colors=len(df)).as_hex())
 
                 # initialize figure
                 plt.figure(figsize=(20,10))
@@ -614,18 +558,18 @@ class graphs ():
             plt.show()
 
     # This method creates race track bar plot
-    def race_track_plot(self, df, cat_col, num_col, style, bar_color):
-        if str(df[cat_col].dtypes) not in ['object','category','bool']:
+    def race_track_plot(self, cat_col, num_col, bar_color):
+        if str(self.df[cat_col].dtypes) not in ['object', 'category', 'bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif str(df[num_col].dtypes) not in ['int64', 'float64']:
+        elif str(self.df[num_col].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col}] not a numerical datatype')
         else:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 # Reorder dataframe
-                df = df.groupby([cat_col])[num_col].mean().round(0).reset_index()
+                df = self.df.groupby([cat_col])[num_col].mean().round(0).reset_index()
                 df = df.sort_values(by=[num_col])
 
-                pal = list(sns.color_palette(palette=bar_color, n_colors=len(self)).as_hex())
+                pal = list(sns.color_palette(palette=bar_color, n_colors=len(df)).as_hex())
 
                 # initialize figure
                 plt.gcf().set_size_inches(12,12)
@@ -653,14 +597,14 @@ class graphs ():
     """ Interactive Visualization Charts """
 
     # This method produces an interactive Treemap
-    def treemap(self, df, cat_col, num_col, style, color_scale):
-        if str(df[cat_col].dtypes) not in ['object','category','bool']:
+    def treemap(self, cat_col, num_col, color_scale):
+        if str(self.df[cat_col].dtypes) not in ['object', 'category', 'bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif str(df[num_col].dtypes) not in ['int64', 'float64']:
+        elif str(self.df[num_col].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col}] not a numerical datatype')
         else:
-            with plt.style.context(style):
-                df = df.groupby([cat_col])[num_col].mean().round().reset_index()
+            with plt.style.context(self.style):
+                df = self.df.groupby([cat_col])[num_col].mean(numeric_only=True).round().reset_index()
                 fig = px.treemap(df, path=[px.Constant(f'{cat_col.title()} Categories'), cat_col],
                                  values=df[num_col],
                                  color=df[num_col],
@@ -673,13 +617,13 @@ class graphs ():
             plt.show()
 
     # This method produces interactive pie chart with percentages
-    def percentage_pie_chart(self, df, cat_col, num_col, bar_col):
-        if str(df[cat_col].dtypes) not in ['object','category','bool']:
+    def percentage_pie_chart(self, cat_col, num_col, bar_col):
+        if str(self.df[cat_col].dtypes) not in ['object', 'category', 'bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif str(df[num_col].dtypes) not in ['int64', 'float64']:
+        elif str(self.df[num_col].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col}] not a numerical datatype')
         else:
-            df = df.groupby([cat_col])[num_col].mean().round(0).reset_index()
+            df = self.df.groupby([cat_col])[num_col].mean(numeric_only=True).round(0).reset_index()
             df = df.sort_values(by=[num_col])
 
             pal = list(sns.color_palette(palette=bar_col, n_colors=len(df)).as_hex())
@@ -689,13 +633,13 @@ class graphs ():
             fig.show()
 
     # This method produces interactive bar chart
-    def interactive_bar_chart(self, df, cat_col, num_col, bar_col):
-        if str(df[cat_col].dtypes) not in ['object','category','bool']:
+    def interactive_bar_chart(self, cat_col, num_col, bar_col):
+        if str(self.df[cat_col].dtypes) not in ['object', 'category', 'bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif str(df[num_col].dtypes) not in ['int64', 'float64']:
+        elif str(self.df[num_col].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col}] not a numerical datatype')
         else:
-            df = df.groupby([cat_col])[num_col].mean().round(0).reset_index()
+            df = self.df.groupby([cat_col])[num_col].mean(numeric_only=True).round(0).reset_index()
             df = df.sort_values(by=[num_col])
 
             pal = list(sns.color_palette(palette=bar_col, n_colors=len(df)).as_hex())
@@ -709,31 +653,31 @@ class graphs ():
             fig.show()
 
     # This method creates interactive polar chart
-    def polar_line_chart(self, df, cat_col, num_col, bar_col):
-        if str(df[cat_col].dtypes) not in ['object','category','bool']:
+    def polar_line_chart(self, cat_col, num_col, bar_col):
+        if str(self.df[cat_col].dtypes) not in ['object', 'category', 'bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif str(df[num_col].dtypes) not in ['int64', 'float64']:
+        elif str(self.df[num_col].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col}] not a numerical datatype')
         else:
-            df = df.groupby([cat_col])[num_col].mean().round(0).reset_index()
+            df = self.df.groupby([cat_col])[num_col].mean(numeric_only=True).round(0).reset_index()
             df = df.sort_values(by=[num_col])
             pal = list(sns.color_palette(palette=bar_col, n_colors=len(df)).as_hex())
             fig = px.line_polar(df, r=num_col, theta=cat_col, line_close=True)
-            fig.update_traces(fill='toself', line = dict(color=pal[-5]))
+            fig.update_traces(fill='toself', line = dict(color=pal[0]))
             fig.update_traces(mode="markers+lines")
             fig.update_layout({'plot_bgcolor': 'rgba(0,0,0,0)', 'paper_bgcolor': 'rgba(0,0,0,0)'})
             fig.show()
 
     # This method creates an interactive circular bubble chart
-    def circular_bubble_chart(self, df, cat_col, num_col, bar_col):
-        if str(df[cat_col].dtypes) not in ['object','category','bool']:
+    def circular_bubble_chart(self, cat_col, num_col, bar_col):
+        if str(self.df[cat_col].dtypes) not in ['object', 'category', 'bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif str(df[num_col].dtypes) not in ['int64', 'float64']:
+        elif str(self.df[num_col].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col}] not a numerical datatype')
         else:
-            df = df.groupby([cat_col])[num_col].mean().round(0).reset_index()
+            df = self.df.groupby([cat_col])[num_col].mean().round(0).reset_index()
             df = df.sort_values(by=[num_col])
-            self['labels'] = ['<b>'+i+'<b>'+format(j,',') for i,j in zip(df[cat_col], df[num_col])]
+            df['labels'] = ['<b>'+i+'<b>'+format(j,',') for i,j in zip(df[cat_col], df[num_col])]
 
             e = 360 / len(df)
             deg = [i * e for i in list(range(len(df)))]
@@ -755,27 +699,27 @@ class graphs ():
     """ Multi-graph subplots """
 
     # This method makes subplots of regresssion plots
-    def regression_subplots(self, df, cat_col, num_col1, num_col2, style, sub_1, sub_2):
-        if cat_col not in df.columns:
+    def regression_subplots(self, cat_col, num_col1, num_col2, sub_1, sub_2):
+        if cat_col not in self.df.columns:
             raise TypeError(f'{cat_col} column not in dataframe')
-        elif str(df[cat_col].dtypes) not in ['object','category','bool']:
+        elif str(self.df[cat_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
-        elif num_col1 not in df.columns:
+        elif num_col1 not in self.df.columns:
             raise TypeError(f'{num_col1} column not in dataframe')
-        elif str(df[num_col1].dtypes) not in ['int64','float64']:
+        elif str(self.df[num_col1].dtypes) not in ['int64','float64']:
             raise TypeError(f'[{num_col1}] not a numerical datatype')
-        elif num_col2 not in df.columns:
+        elif num_col2 not in self.df.columns:
             raise TypeError(f'{num_col2} column not in dataframe')
-        elif str(df[num_col2].dtypes) not in ['int64', 'float64']:
+        elif str(self.df[num_col2].dtypes) not in ['int64', 'float64']:
             raise TypeError(f'[{num_col2}] not a numerical datatype')
         else:
-            with plt.style.context(style):
-                cat_val = df[cat_col].unique().tolist()
+            with plt.style.context(self.style):
+                cat_val = self.df[cat_col].unique().tolist()
                 fig = plt.figure(figsize=(20,20))
                 k = 1
                 for x in cat_val:
                     plt.subplot(sub_1, sub_2, k)
-                    data = df[df[cat_col] == x]
+                    data = self.df[self.df[cat_col] == x]
                     g = sns.regplot(data=data, x=num_col1, y=num_col2, ci=False)
                     plt.annotate(x, xy=(0.05, 0.9), xycoords='axes fraction',
                                  bbox=dict(boxstyle="round", fc='tab:red', alpha=0.6))
@@ -786,10 +730,10 @@ class graphs ():
             plt.show()
 
     # This method returns subplots of histograms for numerical columns
-    def histogram_subplots(self, df, style, sub_1, sub_2):
+    def histogram_subplots(self, sub_1, sub_2):
         num_cols = []
-        for x in df.columns:
-            if str(df[x].dtypes) in ['int64','float64']:
+        for x in self.df.columns:
+            if str(self.df[x].dtypes) in ['int64','float64']:
                 num_cols.append(x)
             else:
                 continue
@@ -797,18 +741,18 @@ class graphs ():
         fig = plt.figure(figsize=(20,20))
         k = 1
         for i in num_cols:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 plt.subplot(sub_1, sub_2, k)
                 plt.xlabel(i)
-                sns.histplot(x=df[i], kde=True)
+                sns.histplot(x=self.df[i], kde=True)
                 k += 1
         plt.show()
 
     # This method return subplots of countplots
-    def count_subplots(self, df, style, sub_1, sub_2):
+    def count_subplots(self, sub_1, sub_2):
         cat_cols = []
-        for x in df.columns:
-            if str(df[x].dtypes) in ['int64','float64']:
+        for x in self.df.columns:
+            if str(self.df[x].dtypes) in ['int64','float64']:
                 continue
             else:
                 cat_cols.append(x)
@@ -816,28 +760,24 @@ class graphs ():
         fig = plt.figure(figsize=(20,20))
         k = 1
         for i in cat_cols:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 plt.subplot(sub_1, sub_2, k)
                 plt.xlabel(i)
-                sns.countplot(data=df, x=i, order=df[i].value_counts(normalize=True).index)
+                sns.countplot(data=self.df, x=i, order=self.df[i].value_counts(normalize=True).index)
                 k += 1
         plt.show()
 
     # This method return subplots of scatter plots
-    def scatter_subplots(self, df, num_col, hue_col, style, sub_1, sub_2):
-        if num_col not in df.columns:
-            raise TypeError(f"{num_col} not a column in dataframe")
-        elif str(df[num_col].dtypes) not in ['int64','float64']:
+    def scatter_subplots(self, num_col, sub_1, sub_2, hue_col=None):
+        if str(self.df[num_col].dtypes) not in ['int64','float64']:
             raise TypeError(f'[{num_col1}] not a numerical datatype')
-        elif hue_col not in df.columns:
-            raise TypeError(f"{hue_col} not a column in dataframe")
-        elif str(df[hue_col].dtypes) not in ['object','category','bool']:
+        elif hue_col != None and str(self.df[hue_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{hue_col}] not a categorical datatype')
         else:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 num_cols = []
-                for x in df.columns:
-                    if str(df[x].dtypes) in ['int64','float64']:
+                for x in self.df.columns:
+                    if str(self.df[x].dtypes) in ['int64','float64']:
                         num_cols.append(x)
                     else:
                         continue
@@ -847,40 +787,38 @@ class graphs ():
                     if j != num_col:
                         plt.subplot(sub_1, sub_2, k)
                         plt.xlabel(j)
-                        sns.scatterplot(x=j, y=num_col, hue=hue_col, palette='magma', data=df)
+                        sns.scatterplot(x=j, y=num_col, hue=hue_col, data=self.df)
                         k += 1
                         plt.grid(False)
                 plt.show()
 
     # This method returns subplots of histograms for numerical columns
-    def box_subplots(self, df, style, sub_1, sub_2):
+    def box_subplots(self, sub_1, sub_2):
         num_cols = []
-        for x in df.columns:
-            if str(df[x].dtypes) in ['int64','float64']:
+        for x in self.df.columns:
+            if str(self.df[x].dtypes) in ['int64','float64']:
                 num_cols.append(x)
             else:
                 continue
         fig = plt.figure(figsize=(20, 20))
         k = 1
         for i in num_cols:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 plt.subplot(sub_1, sub_2, k)
                 plt.xlabel(i)
-                sns.boxplot(x=df[i])
+                sns.boxplot(x=self.df[i])
                 k += 1
         plt.show()
 
     # This method returns subplots of barplots
-    def bar_subplots(self, df, cat_col, style, sub_1, sub_2):
-        if cat_col not in df.columns:
-            raise TypeError(f"{cat_col} not a column in dataframe")
-        elif str(df[cat_col].dtypes) not in ['object','category','bool']:
+    def bar_subplots(self, cat_col, sub_1, sub_2):
+        if str(self.df[cat_col].dtypes) not in ['object','category','bool']:
             raise TypeError(f'[{cat_col}] not a categorical datatype')
         else:
-            with plt.style.context(style):
+            with plt.style.context(self.style):
                 num_cols = []
-                for x in df.columns:
-                    if str(df[x].dtypes) in ['int64','float64']:
+                for x in self.df.columns:
+                    if str(self.df[x].dtypes) in ['int64','float64']:
                         num_cols.append(x)
                     else:
                         continue
@@ -890,8 +828,8 @@ class graphs ():
                 for j in num_cols:
                     plt.subplot(sub_1, sub_2, k)
                     plt.xlabel(j)
-                    order = df.groupby(cat_col).mean(numeric_only=True).sort_values(j, ascending=False).index
-                    ax = sns.barplot(x=cat_col, y=j, order=order, palette='magma', errwidth=0, data=df)
+                    order = self.df.groupby(cat_col).mean(numeric_only=True).sort_values(j, ascending=False).index
+                    ax = sns.barplot(x=cat_col, y=j, order=order, palette='magma', errwidth=0, data=self.df)
                     ax.set_title(f"{cat_col.title().replace('_', ' ')} vs. {j.title().replace('_', ' ')} Bar Chart")
                     plt.grid(False)
                     k += 1
