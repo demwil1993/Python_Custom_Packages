@@ -63,7 +63,7 @@ class wrangler(pd.DataFrame):
     # This method identifies numerical and categorical columns
     def column_analysis(self):
         category_columns = [col for col in self.columns if str(self[col].dtypes) in ['object', 'category', 'bool']]
-        numerical_but_categorical = [col for col in self.columns if self[col].nunique() < 10 and str(self[col]).dtypes in ['int64', 'float64']]
+        numerical_but_categorical = [col for col in self.columns if self[col].nunique() < 10 and str(self[col].dtypes) in ['int64', 'float64']]
         category_with_hi_cardinality = [col for col in self.columns if self[col].nunique() > 50 and str(self[col].dtypes) in ['category', 'object']]
         category_columns = category_columns + numerical_but_categorical
         category_columns = [col for col in category_columns if col not in category_with_hi_cardinality]
