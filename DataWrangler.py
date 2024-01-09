@@ -972,19 +972,20 @@ class Graphs ():
         # Identify all the columns that are numerical
         num_cols = [col for col in self.df.columns if self.df[col].dtype in ['int64', 'float64']]
 
-        # Initialize figure
-        fig, axes = plt.subplots(sub_1, sub_2, figsize=(20, 20))
-        axes = axes.flatten()
+        # Set plotting style
+        with plt.style.context(self.style):
+            # Initialize figure
+            fig, axes = plt.subplots(sub_1, sub_2, figsize=(20, 20))
+            axes = axes.flatten()
 
-        # Iterate columns and plot corresponding data
-        for i, col in enumerate(num_cols):
-
-            # Set plotting style
-            with plt.style.context(self.style):
+            # Iterate columns and plot corresponding data
+            for i, col in enumerate(num_cols):
 
                 # Seaborn histogram
                 sns.histplot(x=self.df[col], kde=True, ax=axes[i])
                 axes[i].set_xlabel(col)
+                axes[i].grid(False)
+
 
         # Remove extra subplots if there are more axes than needed
         for j in range(len(num_cols), len(axes)):
