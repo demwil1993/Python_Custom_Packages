@@ -2,6 +2,10 @@
 
 The `Wrangler` class is a custom extension of the `pd.DataFrame` class with additional functionalities for data preprocessing and analysis.
 
+## Inheritance
+
+The `Wrangler` class inherits from the `pd.DataFrame` class and extends its functionalities with custom methods and attributes.
+
 ## Class Attributes
 
 - `_metadata`: List of metadata attributes preserved in the class.
@@ -40,10 +44,6 @@ The `Wrangler` class is a custom extension of the `pd.DataFrame` class with addi
 ### Miscellaneous
 
 - **`counter(self, column)`**: Prints a dictionary with the unique values of a column and their occurrences.
-
-## Inheritance
-
-The `Wrangler` class inherits from the `pd.DataFrame` class and extends its functionalities with custom methods and attributes.
 
 # Graphs Class Documentation
 
