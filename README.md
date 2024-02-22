@@ -1,4 +1,4 @@
-# Wrangler Class
+# Wrangler Class Documentation
 
 The `Wrangler` class is a custom extension of the `pd.DataFrame` class with additional functionalities for data preprocessing and analysis.
 
@@ -32,18 +32,38 @@ The `Wrangler` class inherits from the `pd.DataFrame` class and extends its func
 - **`column_analysis(self)`**: Provides an overview of the DataFrame, including the number of observations, variables, and types of columns.
 - **`categorical_column_summary(self, column_name, plot=False)`**: Generates a summary of a categorical column and optionally plots a count plot.
 - **`numerical_column_summary(self, column, plot=False)`**: Generates a summary of a numerical column and optionally plots a histogram.
-- **`target_cross_analysis_cat(self, target, cat_col)`**: Cross-examines the relationship between a categorical column and a numerical target.
-- **`target_cross_analysis_num(self, target, num_col)`**: Cross-examines the relationship between a numerical column and a numerical target.
+- **`target_cross_analysis_cat(self, target, cat_col)`**:
+  - Description: Cross-examines the relationship between a categorical column and a numerical target.
+  - Parameter(s):
+    - `target`: String: name of numerical column that will act as dependant variable
+    - `cat_col`: String: name of the categorical column that will act as independant variable  
+- **`target_cross_analysis_num(self, target, num_col)`**:
+  - Description: Cross-examines the relationship between a numerical column and  a target column of any datatype.
+  - Parameter(s):
+    - `target`: Any Datatype: column that will act as dependant variable
+    - `num_col`: String: name of the numerical column that will act as independant variable
 
 ### Data Transformation
 
-- **`category_datatype(self)`**: Converts object data types to category data types.
-- **`turn_null(self, val)`**: Replaces specified values with null values.
-- **`bool_datatype(self, column, true_value, false_value)`**: Converts object data types to boolean data types.
+- **`category_datatype(self)`**:
+  - Description: Converts object data types to category data types.
+- **`turn_null(self, val)`**:
+  - Description: Replaces specified values with null values.
+  - Parameters:
+    - `val`: any datatype: value(s) that will be replace in dataframe
+- **`bool_datatype(self, column, true_value, false_value)`**:
+  - Description: Converts object data types to boolean data types.
+  - Parameter(s):
+    -`column`: String: The name of the column
+    -`true_value`: Any Datatype: The value in the column to be considered as True
+    -`false_value`: Any Datatype: The value in the column to be considered as False.
 
 ### Miscellaneous
 
-- **`counter(self, column)`**: Prints a dictionary with the unique values of a column and their occurrences.
+- **`counter(self, column)`**:
+  - Description: Prints a dictionary with the unique values of a column and their occurrences.
+  - Parameter(s):
+    - `column`: String: The name of the column
 
 # Graphs Class Documentation
 
@@ -67,20 +87,20 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
 - **`histogram(self, column)`**:
 
   - Description: Generates a histogram plot for the specified column.
-  - Parameters:
+  - Parameter(s):
     - `column`: String: The name of the column for which the histogram is to be plotted.
 
 - **`categorical_boxplot(self, categorical_column, numerical_column)`**:
 
   - Description: Generates a boxplot for categorical vs numerical data.
-  - Parameters:
+  - Parameter(s):
     - `categorical_column`: String: The name of the categorical column.
     - `numerical_column`: String: The name of the numerical column.
 
 - **`categorical_boxplot_with_hue(self, categorical_column, numerical_column, hue_column)`**:
 
   - Description: Generates a boxplot with hue encoding for categorical vs numerical data.
-  - Parameters:
+  - Parameter(s):
     - `categorical_column`: String: The name of the categorical column.
     - `numerical_column`: String: The name of the numerical column.
     - `hue_column`: String: The name of the column to encode with hues.
@@ -88,7 +108,7 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
 - **`categorical_barplot(self, cat_column, num_column, hue_col=None)`**
 
   - Description: Generates a barplot for categorical vs numerical data.
-  - Parameters:
+  - Parameter(s):
     - `cat_column`: String: The name of the categorical column.
     - `num_column`: String: The name of the numerical column.
     - `hue_col`: String (optional): The name of the column for hue encoding.
@@ -96,7 +116,7 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
 - **`scatterplot(self, num_col1, num_col2, hue_col=None)`**:
 
   - Description: Generates a scatterplot for two numerical columns.
-  - Parameters:
+  - Parameter(s):
     - `num_col1`: String: The name of the first numerical column.
     - `num_col2`: String: The name of the second numerical column.
     - `hue_col`: String (optional): The name of the column for hue encoding.
@@ -104,27 +124,27 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
 - **`jointplot(self, num_col1, num_col2)`**:
 
   - Description: Generates a joint plot with regression line for two numerical columns.
-  - Parameters:
+  - Parameter(s):
     - `num_col1`: String: The name of the first numerical column.
     - `num_col2`: String: The name of the second numerical column.
 
 - **`list_heatmap(self, columns)`**:
 
   - Description: Generates a heatmap for a list of numerical columns.
-  - Parameters:
+  - Parameter(s):
     - `columns`: List of Strings: The names of the numerical columns.
 
 - **`countplot(self, column, hue_col=None)`**:
 
   - Description: Generates a countplot for a single column.
-  - Parameters:
+  - Parameter(s):
     - `column`: String: The name of the column.
     - `hue_col`: String (optional): The name of the column for hue encoding.
 
 - **`lineplot(self, x_column, y_column, hue_column=None, errors=None)`**:
 
   - Description: Generates a lineplot for two columns.
-  - Parameters:
+  - Parameter(s):
     - `x_column`: String: The name of the x-axis column.
     - `y_column`: String: The name of the y-axis column.
     - `hue_column`: String (optional): The name of the column for hue encoding.
@@ -133,26 +153,26 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
 - **`pie_chart(self, column)`**:
 
   - Description: Generates a pie chart for a categorical column.
-  - Parameters:
+  - Parameter(s):
     - `column`: String: The name of the categorical column.
 
 - **`donut_pie_chart(self, column)`**:
 
   - Description: Generates a donut pie chart for a categorical column.
-  - Parameters:
+  - Parameter(s):
     - `column`: String: The name of the categorical column.
 
 - **`violinplot(self, cat_col, num_col)`**:
 
   - Description: Generates a violin plot for categorical vs numerical data.
-  - Parameters:
+  - Parameter(s):
     - `cat_col`: String: The name of the categorical column.
     - `num_col`: String: The name of the numerical column.
 
 - **`violinplot_with_hue(self, cat_col, num_col, hue_col)`**:
 
   - Description: Generates a violin plot with hue encoding for categorical vs numerical data.
-  - Parameters:
+  - Parameter(s):
     - `cat_col`: String: The name of the categorical column.
     - `num_col`: String: The name of the numerical column.
     - `hue_col`: String: The name of the column to encode with hues.
@@ -160,7 +180,7 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
 - **`circular_barplot(self, cat_col, num_col, bar_color)`**
 
   - Description: Generates a circular bar plot for categorical vs numerical data.
-  - Parameters:
+  - Parameter(s):
     - `cat_col`: String: The name of the categorical column.
     - `num_col`: String: The name of the numerical column.
     - `bar_color`: String: The color palette for the bars.
@@ -168,7 +188,7 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
 - **`race_track_plot(self, cat_col, num_col, bar_color)`**
 
   - Description: Generates a race track bar plot for categorical vs numerical data.
-  - Parameters:
+  - Parameter(s):
     - `cat_col`: String: The name of the categorical column.
     - `num_col`: String: The name of the numerical column.
     - `bar_color`: String: The color palette for the bars.
