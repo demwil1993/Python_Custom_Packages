@@ -27,17 +27,41 @@ The `Wrangler` class inherits from the `pd.DataFrame` class and extends its func
 
 ### Data Analysis
 
-- **`dataframe_analysis(self)`**: Provides descriptive statistics, checks for null values, and duplicated rows.
-- **`identify_columns(self)`**: Identifies numerical and categorical columns.
-- **`column_analysis(self)`**: Provides an overview of the DataFrame, including the number of observations, variables, and types of columns.
-- **`categorical_column_summary(self, column_name, plot=False)`**: Generates a summary of a categorical column and optionally plots a count plot.
-- **`numerical_column_summary(self, column, plot=False)`**: Generates a summary of a numerical column and optionally plots a histogram.
+- **`dataframe_analysis(self)`**:
+  
+  - Description: Provides descriptive statistics, checks for null values, and duplicated rows.
+    
+- **`identify_columns(self)`**:
+  
+  - Description: Identifies numerical and categorical columns.
+    
+- **`column_analysis(self)`**:
+  
+  - Description: Provides an overview of the DataFrame, including the number of observations, variables, and types of columns.
+  
+- **`categorical_column_summary(self, column_name, plot=False)`**:
+  
+  - Description: Generates a summary of a categorical column and optionally plots a count plot.
+  - Parameter(s):
+    - `column`: String: Name of categorical column
+    - `plot`: Boolean (Optional): Plot data, default is False.
+      
+- **`numerical_column_summary(self, column, plot=False)`**:
+  
+  - Description: Generates a summary of a numerical column and optionally plots a histogram.
+  - Parameter(s):
+    - `column`: String: Name of numerical column
+    - `plot`: Boolean (Optional): Plot data, default is False.
+  
 - **`target_cross_analysis_cat(self, target, cat_col)`**:
+  
   - Description: Cross-examines the relationship between a categorical column and a numerical target.
   - Parameter(s):
     - `target`: String: name of numerical column that will act as dependant variable
-    - `cat_col`: String: name of the categorical column that will act as independant variable  
+    - `cat_col`: String: name of the categorical column that will act as independant variable
+       
 - **`target_cross_analysis_num(self, target, num_col)`**:
+  
   - Description: Cross-examines the relationship between a numerical column and  a target column of any datatype.
   - Parameter(s):
     - `target`: Any Datatype: column that will act as dependant variable
@@ -46,12 +70,17 @@ The `Wrangler` class inherits from the `pd.DataFrame` class and extends its func
 ### Data Transformation
 
 - **`category_datatype(self)`**:
+  
   - Description: Converts object data types to category data types.
+    
 - **`turn_null(self, val)`**:
+  
   - Description: Replaces specified values with null values.
   - Parameters:
     - `val`: any datatype: value(s) that will be replace in dataframe
+      
 - **`bool_datatype(self, column, true_value, false_value)`**:
+  
   - Description: Converts object data types to boolean data types.
   - Parameter(s):
     -`column`: String: The name of the column
@@ -61,6 +90,7 @@ The `Wrangler` class inherits from the `pd.DataFrame` class and extends its func
 ### Miscellaneous
 
 - **`counter(self, column)`**:
+  
   - Description: Prints a dictionary with the unique values of a column and their occurrences.
   - Parameter(s):
     - `column`: String: The name of the column
