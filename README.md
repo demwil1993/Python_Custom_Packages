@@ -18,12 +18,33 @@ The `Wrangler` class inherits from the `pd.DataFrame` class and extends its func
 
 ### Data Preprocessing
 
-- **`strip_dataframe(self)`**: Strips leading and trailing white spaces from column names and values.
-- **`normalize(self, col)`**: Normalizes numerical column values.
-- **`complete_imputation(self)`**: Performs imputation for missing values in the DataFrame.
-- **`remove_outlier_iqr(self, column)`**: Removes outliers using the interquartile range method.
-- **`outlier_limits_iqr(self, column)`**: Calculates the upper and lower bounds for outliers using the interquartile range method.
-- **`show_outlier_rows(self)`**: Displays rows containing outliers in the DataFrame.
+- **`strip_dataframe(self)`**:
+  
+  - Description: Strips leading and trailing white spaces from column names and values.
+    
+- **`normalize(self, col)`**:
+  
+  - Description: Normalizes numerical column values.
+  - Parameter(s):
+    - `col`: String: name of numerical column
+       
+- **`complete_imputation(self)`**:
+  
+  - Description: Performs imputation for missing values in the DataFrame.
+    
+- **`remove_outlier_iqr(self, column)`**:
+  
+  - Description: Removes outliers using the interquartile range method.
+    
+- **`outlier_limits_iqr(self, column)`**:
+  
+  - Description: Calculates the upper and lower bounds for outliers using the interquartile range method.
+  - Parameter(s):
+    - `column`: String: name of column numerical column 
+    
+- **`show_outlier_rows(self)`**:
+  
+  - Description: Displays rows containing outliers in the DataFrame.
 
 ### Data Analysis
 
