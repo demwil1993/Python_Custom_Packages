@@ -53,8 +53,9 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
 
 ### Constructor
 
-#### `__init__(self, df, style='ggplot')`
+**`__init__(self, df, style='ggplot')`**:
 
+- Description: Initializes the `Graphs` object,
 - Parameters:
   - `df`: Pandas DataFrame: The dataset to be visualized.
   - `style`: String (optional): The style of the plots. Default is 'ggplot'.
