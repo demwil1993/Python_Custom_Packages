@@ -53,7 +53,7 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
 
 ### Constructor
 
-**`__init__(self, df, style='ggplot')`**:
+- **`__init__(self, df, style='ggplot')`**:
 
 - Description: Initializes the `Graphs` object,
 - Parameters:
@@ -64,20 +64,20 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
 
 ### Single Visualization Graphs
 
-#### `histogram(self, column)`
+- **`histogram(self, column)`**:
 
 - Description: Generates a histogram plot for the specified column.
 - Parameters:
   - `column`: String: The name of the column for which the histogram is to be plotted.
 
-#### `categorical_boxplot(self, categorical_column, numerical_column)`
+- **`categorical_boxplot(self, categorical_column, numerical_column)`**:
 
 - Description: Generates a boxplot for categorical vs numerical data.
 - Parameters:
   - `categorical_column`: String: The name of the categorical column.
   - `numerical_column`: String: The name of the numerical column.
 
-#### `categorical_boxplot_with_hue(self, categorical_column, numerical_column, hue_column)`
+- **`categorical_boxplot_with_hue(self, categorical_column, numerical_column, hue_column)`**:
 
 - Description: Generates a boxplot with hue encoding for categorical vs numerical data.
 - Parameters:
@@ -85,7 +85,7 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
   - `numerical_column`: String: The name of the numerical column.
   - `hue_column`: String: The name of the column to encode with hues.
 
-#### `categorical_barplot(self, cat_column, num_column, hue_col=None)`
+- **`categorical_barplot(self, cat_column, num_column, hue_col=None)`**
 
 - Description: Generates a barplot for categorical vs numerical data.
 - Parameters:
@@ -93,7 +93,7 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
   - `num_column`: String: The name of the numerical column.
   - `hue_col`: String (optional): The name of the column for hue encoding.
 
-#### `scatterplot(self, num_col1, num_col2, hue_col=None)`
+- **`scatterplot(self, num_col1, num_col2, hue_col=None)`**:
 
 - Description: Generates a scatterplot for two numerical columns.
 - Parameters:
@@ -101,27 +101,27 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
   - `num_col2`: String: The name of the second numerical column.
   - `hue_col`: String (optional): The name of the column for hue encoding.
 
-#### `jointplot(self, num_col1, num_col2)`
+- **`jointplot(self, num_col1, num_col2)`**:
 
 - Description: Generates a joint plot with regression line for two numerical columns.
 - Parameters:
   - `num_col1`: String: The name of the first numerical column.
   - `num_col2`: String: The name of the second numerical column.
 
-#### `list_heatmap(self, columns)`
+- **`list_heatmap(self, columns)`**:
 
 - Description: Generates a heatmap for a list of numerical columns.
 - Parameters:
   - `columns`: List of Strings: The names of the numerical columns.
 
-#### `countplot(self, column, hue_col=None)`
+- **`countplot(self, column, hue_col=None)`**:
 
 - Description: Generates a countplot for a single column.
 - Parameters:
   - `column`: String: The name of the column.
   - `hue_col`: String (optional): The name of the column for hue encoding.
 
-#### `lineplot(self, x_column, y_column, hue_column=None, errors=None)`
+- **`lineplot(self, x_column, y_column, hue_column=None, errors=None)`**:
 
 - Description: Generates a lineplot for two columns.
 - Parameters:
@@ -130,26 +130,26 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
   - `hue_column`: String (optional): The name of the column for hue encoding.
   - `errors`: bool (optional): Whether to plot error bars.
 
-#### `pie_chart(self, column)`
+- **`pie_chart(self, column)`**:
 
 - Description: Generates a pie chart for a categorical column.
 - Parameters:
   - `column`: String: The name of the categorical column.
 
-#### `donut_pie_chart(self, column)`
+- **`donut_pie_chart(self, column)`**:
 
 - Description: Generates a donut pie chart for a categorical column.
 - Parameters:
   - `column`: String: The name of the categorical column.
 
-#### `violinplot(self, cat_col, num_col)`
+- **`violinplot(self, cat_col, num_col)`**:
 
 - Description: Generates a violin plot for categorical vs numerical data.
 - Parameters:
   - `cat_col`: String: The name of the categorical column.
   - `num_col`: String: The name of the numerical column.
 
-#### `violinplot_with_hue(self, cat_col, num_col, hue_col)`
+- **`violinplot_with_hue(self, cat_col, num_col, hue_col)`**:
 
 - Description: Generates a violin plot with hue encoding for categorical vs numerical data.
 - Parameters:
@@ -157,7 +157,7 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
   - `num_col`: String: The name of the numerical column.
   - `hue_col`: String: The name of the column to encode with hues.
 
-#### `circular_barplot(self, cat_col, num_col, bar_color)`
+- **`circular_barplot(self, cat_col, num_col, bar_color)`**
 
 - Description: Generates a circular bar plot for categorical vs numerical data.
 - Parameters:
@@ -165,7 +165,7 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
   - `num_col`: String: The name of the numerical column.
   - `bar_color`: String: The color palette for the bars.
 
-#### `race_track_plot(self, cat_col, num_col, bar_color)`
+- **`race_track_plot(self, cat_col, num_col, bar_color)`**
 
 - Description: Generates a race track bar plot for categorical vs numerical data.
 - Parameters:
