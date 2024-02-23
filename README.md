@@ -10,6 +10,13 @@ The `Wrangler` class inherits from the `pd.DataFrame` class and extends its func
 
 - `_metadata`: List of metadata attributes preserved in the class.
 
+- **`_constructor`**
+
+  - Description: This property returns a constructor for the class. The constructor is a function that can create a new instance of the class.
+
+  - Returns:
+    - Function: A constructor function.
+
 ## Methods
 
 ### Initialization
@@ -20,33 +27,51 @@ The `Wrangler` class inherits from the `pd.DataFrame` class and extends its func
 
 ### Data Preprocessing
 
-- **`strip_dataframe(self)`**:
-  
-  - Description: Strips leading and trailing white spaces from column names and values.
+- **`strip_dataframe(self)`**
+
+  - Description: This method strips leading and trailing white spaces from both the DataFrame columns and the values within those columns.
+
+  - Note: This method modifies the DataFrame in place.
     
-- **`normalize(self, col)`**:
-  
-  - Description: Normalizes numerical column values.
-  - Parameter(s):
-    - `col`: String: name of numerical column
+- **`normalize(self, col)`**
+
+  - Description: This method performs normalization on a numerical column in the DataFrame.
+
+  - Parameters:
+    - `col`: String: The name of the numerical column to be normalized.
+
+  - Note: This method modifies the DataFrame in place by replacing the values in the specified numerical column with their normalized counterparts.
        
-- **`complete_imputation(self)`**:
-  
-  - Description: Performs imputation for missing values in the DataFrame.
+- **`complete_imputation(self)`**
+
+  - Description: This method performs imputation on the entire DataFrame, filling missing values regardless of datatype. Numerical columns are imputed with the mean of the column, while categorical columns are imputed with the mode of the column.
+
+  - Note: This method modifies the DataFrame in place.
     
-- **`remove_outlier_iqr(self, column)`**:
-  
-  - Description: Removes outliers using the interquartile range method.
+- **`remove_outlier_iqr(self, column)`**
+
+  - Description: This method uses the Interquartile Range (IQR) method to identify and remove outliers from a numerical column in the DataFrame.
+
+  - Parameters:
+    - `column`: String: The name of the numerical column from which outliers are to be removed.
+
+  - Note: This method modifies the DataFrame in place.
     
-- **`outlier_limits_iqr(self, column)`**:
-  
-  - Description: Calculates the upper and lower bounds for outliers using the interquartile range method.
-  - Parameter(s):
-    - `column`: String: name of column numerical column 
+- **`outlier_limits_iqr(self, column)`**
+
+  - Description: This method produces the upper and lower bound rows of a DataFrame using the Interquartile Range (IQR) method based on a given column.
+
+  - Parameters:
+    - `column`: String: The name of the numerical column used to calculate outliers.
+
+  - Returns:
+    - DataFrame: Rows of the DataFrame where values are considered outliers based on the IQR method. 
     
-- **`show_outlier_rows(self)`**:
-  
-  - Description: Displays rows containing outliers in the DataFrame.
+- **`show_outlier_rows(self)`**
+
+  - Description: This method displays all rows in the DataFrame that contain outliers using the Interquartile Range (IQR) method.
+
+  - Note: Outliers are determined separately for each numerical column in the DataFrame.
 
 ### Data Analysis
 
@@ -58,49 +83,85 @@ The `Wrangler` class inherits from the `pd.DataFrame` class and extends its func
   
   - Description: Identifies numerical and categorical columns.
     
-- **`column_analysis(self)`**:
+- **`column_analysis(self)`**
+
+  - Description: This method identifies and analyzes columns in the DataFrame, categorizing them into numerical and categorical columns, and provides additional insights such as high cardinality categorical columns and numerical columns treated as categorical.
+
+  - Returns:
+    - `category_columns`: List of Strings: Names of categorical columns.
+    - `numerical_columns`: List of Strings: Names of purely numerical columns.
+    - `category_with_hi_cardinality`: List of Strings: Names of categorical columns with high cardinality.
+    
+  - Note: High cardinality is defined as having more than 50 unique values.
   
-  - Description: Provides an overview of the DataFrame, including the number of observations, variables, and types of columns.
-  
-- **`categorical_column_summary(self, column_name, plot=False)`**:
-  
-  - Description: Generates a summary of a categorical column and optionally plots a count plot.
-  - Parameter(s):
-    - `column`: String: Name of categorical column
-    - `plot`: Boolean (Optional): Plot data, default is False.
+- **`categorical_column_summary(self, column_name, plot=False)`**
+
+  - Description: This method provides a summary of a categorical column in the DataFrame.
+
+  - Parameters:
+    - `column_name`: String: The name of the categorical column to summarize.
+    - `plot`: Boolean (default: False): If True, a count plot of the categorical column will be displayed.
+
+  - Note: This method prints the count and percentage ratio of each category in the specified categorical column.
       
-- **`numerical_column_summary(self, column, plot=False)`**:
+- **`numerical_column_summary(self, column, plot=False)`**
+
+  - Description: This method provides a summary of a numerical column in the DataFrame.
+
+  - Parameters:
+    - `column`: String: The name of the numerical column to summarize.
+    - `plot`: Boolean (default: False): If True, a histogram of the numerical column will be displayed along with the summary statistics.
+
+  - Note: This method prints the summary statistics including count, mean, standard deviation, minimum, 5th, 10th, 20th, 30th, 40th, 50th (median), 60th, 70th, 80th, 90th, 95th, and 99th percentiles.
+
   
-  - Description: Generates a summary of a numerical column and optionally plots a histogram.
-  - Parameter(s):
-    - `column`: String: Name of numerical column
-    - `plot`: Boolean (Optional): Plot data, default is False.
-  
-- **`target_cross_analysis_cat(self, target, cat_col)`**:
-  
-  - Description: Cross-examines the relationship between a categorical column and a numerical target.
-  - Parameter(s):
-    - `target`: String: name of numerical column that will act as dependant variable
-    - `cat_col`: String: name of the categorical column that will act as independant variable
+- **`target_cross_analysis_cat(self, target, cat_col)`**
+
+  - Description: This method cross-examines the relationship between a target column (numerical) and a categorical column.
+
+  - Parameters:
+    - `target`: String: The name of the numerical target column.
+    - `cat_col`: String: The name of the categorical column.
+
+  - Note: This method prints the mean of the target column grouped by the categories in the specified categorical column.
        
-- **`target_cross_analysis_num(self, target, num_col)`**:
-  
-  - Description: Cross-examines the relationship between a numerical column and  a target column of any datatype.
-  - Parameter(s):
-    - `target`: Any Datatype: column that will act as dependant variable
-    - `num_col`: String: name of the numerical column that will act as independant variable
+- **`target_cross_analysis_num(self, target, num_col)`**
+
+  - Description: This method cross-examines the relationship between a target column and a numerical column, regardless of the datatype of the target column.
+
+  - Parameters:
+    - `target`: String: The name of the target column.
+    - `num_col`: String: The name of the numerical column.
 
 ### Data Transformation
 
-- **`category_datatype(self)`**:
-  
-  - Description: Converts object data types to category data types.
+- **`category_datatype(self)`**
+
+  - Description: This method type casts columns with an object datatype into a category datatype.
+
+  - Note: This method modifies the DataFrame in place.
     
-- **`turn_null(self, val)`**:
-  
-  - Description: Replaces specified values with null values.
+- **`turn_null(self, val)`**
+
+  - Description: This method replaces values in a DataFrame that represent an unknown value but are not recorded as null (e.g., '-', '?', '*') with NaN.
+
   - Parameters:
-    - `val`: any datatype: value(s) that will be replace in dataframe
+    - `val`: The value to be replaced with NaN.
+
+  - Note: This method modifies the DataFrame in place.
+
+- **`null_percent(self)`**
+
+  - Description: Outputs the percentage of null values in each column of the DataFrame.
+
+- **`drop_null_by_percent(self, percent)`**
+
+  - Description: Drops columns in a DataFrame that have a percentage of null values greater than or equal to the specified threshold.
+
+  - Parameters:
+    - `percent`: Float: The percentage threshold above which columns will be dropped. Expressed as a value between 0 and 100.
+
+  - Note: This method modifies the DataFrame in place.
       
 - **`bool_datatype(self, column, true_value, false_value)`**
 
