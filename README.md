@@ -14,7 +14,9 @@ The `Wrangler` class inherits from the `pd.DataFrame` class and extends its func
 
 ### Initialization
 
-- **`__init__(self, *args, **kwargs)`**: Initializes the `Wrangler` object, with an optional `my_attr` attribute.
+- **`__init__(self, *args, **kwargs)`**:
+  
+  - Description: Initializes the `Wrangler` object, with an optional `my_attr` attribute.
 
 ### Data Preprocessing
 
@@ -243,4 +245,64 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
     - `cat_col`: String: The name of the categorical column.
     - `num_col`: String: The name of the numerical column.
     - `bar_color`: String: The color palette for the bars.
+
+### Interactive Visualization Charts using Plotly library
+
+- **`treemap(self, cat_col, num_col, color_scale)`**
+
+  - Description: This method generates an interactive treemap visualization based on categorical and numerical data..
+  
+  - Parameter(s):
+    - `cat_col`: String: The name of the categorical column.
+    - `num_col`: String: The name of the numerical column.
+    - `color_scale`: String: The color palette for the treemap bars.
+
+- **`percentage_pie_chart(self, cat_col, num_col, bar_col)`**
+
+  - Description: This method generates an interactive pie chart visualization representing the percentage distribution of numerical data across categories in a categorical column.
+  
+  - Parameter(s):
+    - `cat_col`: String: The name of the categorical column.
+    - `num_col`: String: The name of the numerical column.
+    - `bar_col`: String: The name of the color palette to be used for the pie chart slices.
+
+- **`interactive_bar_chart(self, cat_col, num_col, bar_col)`**
+
+  - Description: This method generates an interactive bar chart visualization depicting the average numerical values across categories in a categorical column.
+  
+  - Parameter(s):
+    - `cat_col`: String: The name of the categorical column.
+    - `num_col`: String: The name of the numerical column.
+    - `bar_col`: String: The name of the color palette to be used for the bar chart bars.
+
+- **`polar_line_chart(self, cat_col, num_col, bar_col)`**
+
+  - Description: This method generates an interactive polar line chart visualization illustrating the average numerical values across categories in a categorical column.
+  
+  - Parameter(s):
+    - `cat_col`: String: The name of the categorical column.
+    - `num_col`: String: The name of the numerical column.
+    - `bar_col`: String: The name of the color palette to be used for the line chart.
+
+- **`circular_bubble_chart(self, cat_col, num_col, bar_col)`**
+
+  - Description: This method generates an interactive circular bubble chart visualization representing the average numerical values across categories in a categorical column.
+  
+  - Parameter(s):
+    - `cat_col`: String: The name of the categorical column.
+    - `num_col`: String: The name of the numerical column.
+    - `bar_col`: String: The name of the color palette to be used for the bubble chart.
+
+### Multi-graph subplots
+
+- **`regression_subplots(self, cat_col, num_col1, num_col2, sub_1, sub_2)`**
+
+  - Description: This method creates subplots of regression plots based on categorical and numerical data. It takes two numerical columns (`num_col1` and `num_col2`) and a categorical column (`cat_col`) as input and generates subplots where each subplot corresponds to a unique category in the categorical column. Each subplot contains a scatter plot with a regression line representing the relationship between the two numerical columns for the specific category. Annotations indicating the category name and the correlation coefficient are added to each subplot.
+  
+  - Parameter(s):
+    - `cat_col`: String: The name of the categorical column.
+    - `num_col1`: String: The name of the first numerical column.
+    - `num_col2`: String: The name of the second numerical column.
+    - `sub_1`: Integer: The number of rows in the subplot grid.
+    - `sub_2`: Integer: The number of columns in the subplot grid.
 
