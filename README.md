@@ -102,21 +102,25 @@ The `Wrangler` class inherits from the `pd.DataFrame` class and extends its func
   - Parameters:
     - `val`: any datatype: value(s) that will be replace in dataframe
       
-- **`bool_datatype(self, column, true_value, false_value)`**:
-  
-  - Description: Converts object data types to boolean data types.
-  - Parameter(s):
-    -`column`: String: The name of the column
-    -`true_value`: Any Datatype: The value in the column to be considered as True
-    -`false_value`: Any Datatype: The value in the column to be considered as False.
+- **`bool_datatype(self, column, true_value, false_value)`**
+
+  - Description: This method type casts an object datatype into a boolean datatype based on specified true and false values.
+
+  - Parameters:
+    - `column` (str): The name of the column in the DataFrame.
+    - `true_value`: The value in the column to be considered as True.
+    - `false_value`: The value in the column to be considered as False.
+
+  - **Note**: This method modifies the DataFrame in place.
 
 ### Miscellaneous
 
-- **`counter(self, column)`**:
-  
-  - Description: Prints a dictionary with the unique values of a column and their occurrences.
+- **`counter(self, column)`**
+
+  - Description: This method prints a dictionary containing the unique values of a specified column along with the number of occurrences of each value.
+
   - Parameter(s):
-    - `column`: String: The name of the column
+    - `column`: String: The name of the column for which unique values and their occurrences are counted.
 
 # Graphs Class Documentation
 
