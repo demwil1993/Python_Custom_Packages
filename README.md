@@ -73,6 +73,45 @@ The `Wrangler` class inherits from the `pd.DataFrame` class and extends its func
 
   - Note: Outliers are determined separately for each numerical column in the DataFrame.
 
+- **`category_datatype(self)`**
+
+  - Description: This method type casts columns with an object datatype into a category datatype.
+
+  - Note: This method modifies the DataFrame in place.
+    
+- **`turn_null(self, val)`**
+
+  - Description: This method replaces values in a DataFrame that represent an unknown value but are not recorded as null (e.g., '-', '?', '*') with NaN.
+
+  - Parameters:
+    - `val`: The value to be replaced with NaN.
+
+  - Note: This method modifies the DataFrame in place.
+
+- **`null_percent(self)`**
+
+  - Description: Outputs the percentage of null values in each column of the DataFrame.
+
+- **`drop_null_by_percent(self, percent)`**
+
+  - Description: Drops columns in a DataFrame that have a percentage of null values greater than or equal to the specified threshold.
+
+  - Parameters:
+    - `percent`: Float: The percentage threshold above which columns will be dropped. Expressed as a value between 0 and 100.
+
+  - Note: This method modifies the DataFrame in place.
+      
+- **`bool_datatype(self, column, true_value, false_value)`**
+
+  - Description: This method type casts an object datatype into a boolean datatype based on specified true and false values.
+
+  - Parameters:
+    - `column` (str): The name of the column in the DataFrame.
+    - `true_value`: The value in the column to be considered as True.
+    - `false_value`: The value in the column to be considered as False.
+
+  - **Note**: This method modifies the DataFrame in place.
+
 ### Data Analysis
 
 - **`dataframe_analysis(self)`**:
@@ -132,49 +171,6 @@ The `Wrangler` class inherits from the `pd.DataFrame` class and extends its func
   - Parameters:
     - `target`: String: The name of the target column.
     - `num_col`: String: The name of the numerical column.
-
-### Data Transformation
-
-- **`category_datatype(self)`**
-
-  - Description: This method type casts columns with an object datatype into a category datatype.
-
-  - Note: This method modifies the DataFrame in place.
-    
-- **`turn_null(self, val)`**
-
-  - Description: This method replaces values in a DataFrame that represent an unknown value but are not recorded as null (e.g., '-', '?', '*') with NaN.
-
-  - Parameters:
-    - `val`: The value to be replaced with NaN.
-
-  - Note: This method modifies the DataFrame in place.
-
-- **`null_percent(self)`**
-
-  - Description: Outputs the percentage of null values in each column of the DataFrame.
-
-- **`drop_null_by_percent(self, percent)`**
-
-  - Description: Drops columns in a DataFrame that have a percentage of null values greater than or equal to the specified threshold.
-
-  - Parameters:
-    - `percent`: Float: The percentage threshold above which columns will be dropped. Expressed as a value between 0 and 100.
-
-  - Note: This method modifies the DataFrame in place.
-      
-- **`bool_datatype(self, column, true_value, false_value)`**
-
-  - Description: This method type casts an object datatype into a boolean datatype based on specified true and false values.
-
-  - Parameters:
-    - `column` (str): The name of the column in the DataFrame.
-    - `true_value`: The value in the column to be considered as True.
-    - `false_value`: The value in the column to be considered as False.
-
-  - **Note**: This method modifies the DataFrame in place.
-
-### Miscellaneous
 
 - **`counter(self, column)`**
 
