@@ -369,7 +369,7 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
     - `num_col`: String: The name of the numerical column.
     - `bar_col`: String: The name of the color palette to be used for the bubble chart.
 
-### Multi-graph subplots
+### Multi-plot Graphs
 
 - **`regression_subplots(self, cat_col, num_col1, num_col2, sub_1, sub_2)`**
 
