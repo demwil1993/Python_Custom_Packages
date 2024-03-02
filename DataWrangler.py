@@ -452,7 +452,7 @@ class Graphs ():
         plt.show()
 
     # This method returns seaborn univariate barplot with grouping if desired
-    def countplot(self, column, hue_col=None):
+    def countplot(self, column, hue_col=None, limit=None):
         if column not in self.df.columns:
             raise ValueError(f'Column "{column}" not in the dataframe')
         elif hue_col not in self.df.columns and hue_col is not None:
@@ -460,11 +460,17 @@ class Graphs ():
 
         with plt.style.context(self.style):
             fig, ax = plt.subplots(figsize=(17, 8))
-            order = self.df[column].value_counts(normalize=True).index
+            if limit is not None and type(limit) == int:
+                order = self.df[column].value_counts(normalize=True).iloc[:limit].index
+            else:
+                order = self.df[column].value_counts(normalize=True).index
             sns.countplot(data=self.df, x=column, hue=hue_col, order=order, ax=ax)
 
             ax.grid(False)
-            title = f"{column.title().replace('_', ' ')} Countplot"
+            if limit is not None:
+                title = f"{column.title().replace('_', ' ')} Countplot [Top {limit}]"
+            else:
+                title = f"{column.title().replace('_', ' ')} Countplot"
             if hue_col is not None:
                 title += f' with {hue_col.title().replace("_", " ")} Categories'
             ax.set_title(title)
