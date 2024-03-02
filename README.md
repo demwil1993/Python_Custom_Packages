@@ -222,14 +222,15 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
     - `numerical_column`: String: The name of the numerical column to be plotted.
     - `hue_column`: String: The name of the categorical column for color encoding.
 
-- **`categorical_barplot(self, cat_column, num_column, hue_col=None)`**
+- **`categorical_barplot(self, cat_column, num_column, hue_col=None, limit=None)`**
 
-  - Description: This method generates a seaborn bivariate bar plot to visualize the relationship between a categorical column (`cat_column`) and a numerical column (`num_column`). Optionally, it can encode a third categorical column (`hue_col`) by color to represent different groups.
+  - Description: This method generates a seaborn bivariate bar plot to visualize the relationship between a categorical column (`cat_column`) and a numerical column (`num_column`). Optionally, it can encode a third categorical column (`hue_col`) by color to represent different groups. Optionally, can also limit the number of group columns shown with the `limit' parameter.
 
   - Parameter(s):
     - `cat_column`: String: The name of the categorical column.
     - `num_column`: String: The name of the numerical column.
     - `hue_col`: String or None: The name of the categorical column for color encoding (optional).
+    - `limit`: Integer or None: The number of group columns to be shown in graph (optional).
 
 - **`scatterplot(self, num_col1, num_col2, hue_col=None)`**
 
