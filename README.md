@@ -255,13 +255,14 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
   - Parameter(s):
     - `columns`: List of strings: The list of numerical column names for which the correlation matrix will be calculated and visualized.
 
-- **`countplot(self, column, hue_col=None)`**
+- **`countplot(self, column, hue_col=None, limit=None)`**
 
-  - Description: This method creates a seaborn bar plot to visualize the distribution of values in a single categorical column (`column`). Optionally, it can group the data based on another categorical column (`hue_col`), encoding different groups with different colors.
+  - Description: This method creates a seaborn bar plot to visualize the distribution of values in a single categorical column (`column`). Optionally, it can group the data based on another categorical column (`hue_col`), encoding different groups with different colors. Optionally, can also limit the number of group columns shown with the `limit' parameter.
 
   - Parameter(s):
     - `column`: String: The name of the categorical column to be plotted.
     - `hue_col`: String or None: The name of the categorical column for grouping (optional).
+    - `limit`: Integer or None: The number of group columns to be shown in graph (optional).
 
 - **`lineplot(self, x_column, y_column, hue_column=None, errors=None)`**
 
