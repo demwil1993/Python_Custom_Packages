@@ -343,12 +343,18 @@ class Graphs ():
         with plt.style.context(self.style):
             # Create the barplot
             fig, ax = plt.subplots(figsize=(17, 8))
-            order = self.df.groupby(cat_column).mean(numeric_only=True).sort_values(num_column, ascending=False).index
+            if limit is not None and type(limit) == int:
+                order = self.df.groupby(cat_column).mean(numeric_only=True).sort_values(num_column, ascending=False).iloc[:limit].index
+            else:
+                order = self.df.groupby(cat_column).mean(numeric_only=True).sort_values(num_column, ascending=False).index
             sns.barplot(data=self.df, x=cat_column, y=num_column, hue=hue_col, order=order, errwidth=0, ax=ax)
 
             # Customize plot
             ax.grid(False)
-            title = f"Average {num_column.replace('_', ' ').title()} by {cat_column.replace('_', ' ').title()} Barplot"
+            if limit is not None:
+                title = f"Average {num_column.replace('_', ' ').title()} by {cat_column.replace('_', ' ').title()} Barplot [Top {limit}]"
+            else:
+                title = f"Average {num_column.replace('_', ' ').title()} by {cat_column.replace('_', ' ').title()} Barplot"
             if hue_col:
                 title += f" with {hue_col.replace('_', ' ').title()} Grouping"
             ax.set_title(title)
