@@ -1007,7 +1007,7 @@ class Graphs ():
         plt.show()
 
     # This method return subplots of countplots of categorical columns
-    def cat_count_subplots(self, sub_1, sub_2):
+    def cat_count_subplots(self, sub_1, sub_2, limit=None):
         # Identify all the columns that are categorical
         cat_cols = [col for col in self.df.columns if self.df[col].dtype not in ['int64', 'float64']]
 
@@ -1022,7 +1022,11 @@ class Graphs ():
             with plt.style.context('ggplot'):
 
                 # Seaborn count plot
-                sns.countplot(data=self.df, x=col, order=self.df[col].value_counts(normalize=True).index, ax=axes[i])
+                if limit is not None and type(limit) == int:
+                    order = self.df[col].value_counts(normalize=True).iloc[:limit].index
+                else:
+                    order = self.df[col].value_counts(normalize=True).index
+                sns.countplot(data=self.df, x=col, order=order, ax=axes[i])
                 axes[i].set_xlabel(col)
 
                 # Annotate each bar with its percentage
@@ -1105,7 +1109,7 @@ class Graphs ():
         plt.show()
 
     # This method returns subplots of barplots
-    def bar_subplots(self, cat_col, sub_1, sub_2):
+    def bar_subplots(self, cat_col, sub_1, sub_2, limit=None):
         # Check if the categorical column has a valid datatype
         if self.df[cat_col].dtype not in ['object', 'category', 'bool']:
             raise ValueError(f'[{cat_col}] not a valid categorical datatype')
@@ -1122,9 +1126,12 @@ class Graphs ():
 
             # Iterate columns and plot corresponding data
             for j, ax in zip(num_cols, axes):
-                order = self.df.groupby(cat_col).mean(numeric_only=True).sort_values(j, ascending=False).index
 
                 # Use seaborn barplot
+                if limit is not None and type(limit) == int:
+                    order = self.df.groupby(cat_col).mean(numeric_only=True).sort_values(j, ascending=False).iloc[:limit].index
+                else:
+                    order = self.df.groupby(cat_col).mean(numeric_only=True).sort_values(j, ascending=False).index
                 sns.barplot(x=cat_col, y=j, order=order, palette='magma', errwidth=0, data=self.df, ax=ax)
 
                 ax.set_title(f"{cat_col.title().replace('_', ' ')} vs. Average {j.title().replace('_', ' ')} Bar Chart")
