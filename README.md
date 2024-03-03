@@ -392,13 +392,14 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
     - `sub_1`: Integer: The number of rows in the subplot grid.
     - `sub_2`: Integer: The number of columns in the subplot grid.
 
-- **`cat_count_subplots(self, sub_1, sub_2)`**
+- **`cat_count_subplots(self, sub_1, sub_2, limit=None)`**
 
-  - Description: This method generates subplots of countplots for categorical columns in the DataFrame. It creates a grid of subplots with dimensions specified by `sub_1` (number of rows) and `sub_2` (number of columns), and plots countplots for each categorical column in the DataFrame. Each countplot displays the count of occurrences of each category in the respective categorical column. The bars in the countplots are annotated with the percentage of occurrences they represent.
+  - Description: This method generates subplots of countplots for categorical columns in the DataFrame. It creates a grid of subplots with dimensions specified by `sub_1` (number of rows) and `sub_2` (number of columns), and plots countplots for each categorical column in the DataFrame. Each countplot displays the count of occurrences of each category in the respective categorical column. The bars in the countplots are annotated with the percentage of occurrences they represent. Optionally, can limit the number of group columns shown in each subplot with the `limit' parameter.
   
   - Parameter(s):
     - `sub_1`: Integer: The number of rows in the subplot grid.
     - `sub_2`: Integer: The number of columns in the subplot grid.
+    - `limit`: Integer or None: The number of group columns to be shown in graph (optional).
 
 - **`scatter_subplots(self, num_col, sub_1, sub_2, hue_col=None)`**
 
@@ -418,11 +419,12 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
     - `sub_1`: Integer: The number of rows in the subplot grid.
     - `sub_2`: Integer: The number of columns in the subplot grid.
 
-- **`bar_subplots(self, cat_col, sub_1, sub_2)`**
+- **`bar_subplots(self, cat_col, sub_1, sub_2, limit=None)`**
 
-  - Description: This method generates subplots of bar plots for comparing numerical columns across categories in a specified categorical column. It creates a grid of subplots with dimensions specified by `sub_1` (number of rows) and `sub_2` (number of columns), and plots bar plots for each numerical column in the DataFrame. Each bar plot displays the average value of the respective numerical column for each category in the specified categorical column.
+  - Description: This method generates subplots of bar plots for comparing numerical columns across categories in a specified categorical column. It creates a grid of subplots with dimensions specified by `sub_1` (number of rows) and `sub_2` (number of columns), and plots bar plots for each numerical column in the DataFrame. Each bar plot displays the average value of the respective numerical column for each category in the specified categorical column. Optionally, can limit the number of group columns shown in each subplot with the `limit' parameter.
   
   - Parameter(s):
     - `cat_col`: String: The name of the categorical column for grouping the data.
     - `sub_1`: Integer: The number of rows in the subplot grid.
     - `sub_2`: Integer: The number of columns in the subplot grid.
+    - `limit`: Integer or None: The number of group columns to be shown in graph (optional).
