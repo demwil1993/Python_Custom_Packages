@@ -1,27 +1,26 @@
-# Wrangler Class Documentation
+<details>
+<summary><strong>Wrangler Class Documentation</strong></summary>
 
-The `Wrangler` class is a custom extension of the `pd.DataFrame` class with additional functionalities for data preprocessing and analysis.
+The <strong>Wrangler</strong> class is a custom extension of the <strong>pd.DataFrame</strong> class with additional functionalities for data preprocessing and analysis.
 
-## Inheritance
+<details><summary><strong>Class Attributes</strong></summary>
 
-The `Wrangler` class inherits from the `pd.DataFrame` class and extends its functionalities with custom methods and attributes.
+- <strong>_metadata</strong>: List of metadata attributes preserved in the class.
 
-## Class Attributes
-
-- `_metadata`: List of metadata attributes preserved in the class.
-
-- **`_constructor`**
+- <strong>_constructor</strong>
 
   - Description: This property returns a constructor for the class. The constructor is a function that can create a new instance of the class.
 
   - Returns:
     - Function: A constructor function.
+</details>
 
-## Methods
+<details>
+<summary><strong>Methods</strong></summary>
 
 ### Initialization
 
-- **`__init__(self, *args, **kwargs)`**:
+- <strong>__init__(self, *args, **kwargs)</strong>:
   
   - Description: Initializes the `Wrangler` object, with an optional `my_attr` attribute.
 
@@ -178,8 +177,11 @@ The `Wrangler` class inherits from the `pd.DataFrame` class and extends its func
 
   - Parameter(s):
     - `column`: String: The name of the column for which unique values and their occurrences are counted.
+</details>
+</details>
 
-# Graphs Class Documentation
+<details>
+<summary><strong>Graphs Class Documentation</strong></summary>
 
 The `Graphs` class provides a variety of methods for visualizing data using seaborn and matplotlib libraries. This class is designed to facilitate the creation of different types of plots for exploratory data analysis.
 
@@ -428,3 +430,4 @@ The `Graphs` class provides a variety of methods for visualizing data using seab
     - `sub_1`: Integer: The number of rows in the subplot grid.
     - `sub_2`: Integer: The number of columns in the subplot grid.
     - `limit`: Integer or None: The number of group columns to be shown in graph (optional).
+</details>
