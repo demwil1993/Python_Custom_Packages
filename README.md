@@ -22,7 +22,7 @@ The <strong>Wrangler</strong> class is a custom extension of the <strong>pd.Data
 
 - <strong>__init__(self, *args, **kwargs)</strong>:
   
-  - Description: Initializes the `Wrangler` object, with an optional `my_attr` attribute.
+  - Description: Initializes the <strong>`Wrangler`</strong> object, with an optional `my_attr` attribute.
 
 ### Data Preprocessing
 
