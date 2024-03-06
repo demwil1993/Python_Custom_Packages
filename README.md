@@ -1,5 +1,5 @@
 <details>
-<summary style="color:white; background:black;"><strong>Wrangler Class Documentation</strong></summary>
+<div style="color:white; background:black;"><strong><summary>Wrangler Class Documentation</summary></strong></div>
 
 The <strong>Wrangler</strong> class is a custom extension of the <strong>pd.DataFrame</strong> class with additional functionalities for data preprocessing and analysis.
 
