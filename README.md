@@ -3,24 +3,23 @@
 
 The <strong>Wrangler</strong> class is a custom extension of the <strong>pd.DataFrame</strong> class with additional functionalities for data preprocessing and analysis.
 
-<details><summary><strong>Class Attributes</strong></summary>
+### Class Attributes
 
-- <strong>_metadata</strong>: List of metadata attributes preserved in the class.
+- **`_metadata`**: List of metadata attributes preserved in the class.
 
-- <strong>_constructor</strong>
+- **`_constructor`**
 
   - Description: This property returns a constructor for the class. The constructor is a function that can create a new instance of the class.
 
   - Returns:
     - Function: A constructor function.
-</details>
 
-<details>
-<summary><strong>Methods</strong></summary>
+
+### Methods
 
 ### Initialization
 
-- <strong>`__init__(self, *args, **kwargs)`</strong>:
+- **`__init__(self, *args, **kwargs)`**:
   
   - Description: Initializes the <strong>`Wrangler`</strong> object, with an optional `my_attr` attribute.
 
@@ -177,7 +176,6 @@ The <strong>Wrangler</strong> class is a custom extension of the <strong>pd.Data
 
   - Parameter(s):
     - `column`: String: The name of the column for which unique values and their occurrences are counted.
-</details>
 </details>
 
 <details>
