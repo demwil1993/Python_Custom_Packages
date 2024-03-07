@@ -1,3 +1,5 @@
+<h1>The DataWrangler Python script contains two custom classes</h1>
+
 <details>
 <summary><strong>Wrangler Class Documentation</strong></summary>
 
