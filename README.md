@@ -16,11 +16,11 @@ The <strong>Wrangler</strong> class is a custom extension of the <strong>pd.Data
 </details>
 
 <details>
-<summary><strong>Methods</strong></summary>
+<ul><li><summary><strong>Methods</strong></summary></li></ul>
 
 ### Initialization
 
-- <strong>`__init__(<em>self, *args, **kwargs</em>)`</strong>:
+- <strong>`__init__(self, *args, **kwargs)`</strong>:
   
   - Description: Initializes the <strong>`Wrangler`</strong> object, with an optional `my_attr` attribute.
 
