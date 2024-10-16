@@ -277,7 +277,7 @@ class Wrangler(pd.DataFrame):
         except Exception as e:
             print(f"An error occurred while calculating null percentages: {e}")
 
-    # Drop columns in a DataFrame with a certain percentage of null values
+    # Drop columns in a DataFrame when the percentage of null values exceed a user-defined threshold
     def drop_null_by_percent(self: pd.DataFrame, percent: Union[int, float]) -> None:
         try:
             min_count = int(((100 - percent) / 100) * self.shape[0] + 1)
