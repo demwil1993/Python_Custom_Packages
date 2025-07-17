@@ -1,292 +1,332 @@
+import math
+from collections import Counter
+from typing import Any, Callable, Optional
+
 import numpy as np
 import pandas as pd
+from pandas import DataFrame
 import seaborn as sns
 import matplotlib.pyplot as plt
-from collections import Counter
-import math
 import plotly.express as px
 import scipy.stats as stats
-from typing import Any, Callable, List, Optional, Type, Union
-from pandas import DataFrame
 
 class Wrangler(pd.DataFrame):
     """ A custom DataFrame class with additional attributes. """
 
-    # List of metadata attributes to be preserved.
+    # List of metadata attributes to be preserved when DataFrame methods create new objects.
     _metadata: list[str] = ['my_attr']
 
     @property
     def _constructor(self) -> Callable[..., "Wrangler"]:
-        """ Returns a constructor for the class."""
+        """
+        Ensures that operations on Wrangler objects (like df[mask], df.copy()) 
+        return new Wrangler instances (not just plain pd.DataFrames), 
+        preserving any custom behavior and attributes.
+        """
         def _c(*args: Any, **kwargs: Any) -> "Wrangler":
+            # Creates a new Wrangler instance and copies metadata from self.
             return Wrangler(*args, **kwargs).__finalize__(self)
         return _c
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Initializes a new Wrangler object. 
+        - Extracts the custom 'my_attr' from kwargs if present, and sets it as an instance attribute.
+        - Initializes the underlying DataFrame with the remaining args and kwargs.
+        """
         # Pop the 'my_attr' keyword argument if provided.
         self.my_attr: Optional[Any] = kwargs.pop('my_attr', None)
         super().__init__(*args, **kwargs)
 
-    # This method strips leading and trailing white spaces from DataFrame columns and column values
-    def strip_dataframe(self: pd.DataFrame) -> None:
-        self.columns = self.columns.str.strip()  # strip whitespaces from column names
+    # Dataframe Not Empty Validation
+    def _check_not_empty(self: pd.DataFrame) -> None:
+        if self.empty:
+            raise ValueError("Dateframe is empty and cannot be analyzed. Please supply data before calling this method.")
+    
+    # Check if a column is present
+    def _check_valid_column(self: pd.DataFrame, column: str) -> None:
+        if column not in self.columns:
+            raise KeyError(f"Column '{column}' not found in the DataFrame.")
+    
+    # Check if column has a categorical datatype (i.e., object, category, boolean)    
+    def _check_cat_column(self: pd.DataFrame, column: str) -> None:
+        if self[column].dtype not in ['object', 'category', 'bool']:
+            raise ValueError(f"Column '{column}' is not a categorical datatype.")
 
-        # strip whitespaces from columns' values where the column is not a numerical datatype
+    # Check if column has a numerical datatype (i.e., integer, floating-point)    
+    def _check_num_column(self: pd.DataFrame, column: str) -> None:
+        if self[column].dtype not in ['int64', 'float64']:
+            raise ValueError(f"Column '{column}' is not a numerical data type (int64, float64).")
+
+    # Check for nulls in column    
+    def _check_nulls(self: pd.DataFrame, column: str):
+        if self[column].isnull().any():
+            raise ValueError(f"Column '{column}' contains null values. Please impute or drop null values.")
+
+    # Strip leading and trailing white spaces from all column headers and values
+    def strip_dataframe(self: pd.DataFrame) -> None:
+        self._check_not_empty()
+        self.columns = self.columns.str.strip()
+
         for col in self.select_dtypes(include=['object', 'category']).columns:
             self[col] = self[col].str.strip()
 
-    # This method provides summary statistics for categorical and numerical data columns
+    # Summary statistics 
     def dataframe_analysis(self: pd.DataFrame) -> None:
-        try:
-            # Descriptive Statistics
-            print("Descriptive Statistics of Data:")
-            print(self.describe(include=['object', 'float', 'int', 'category', 'bool']).T)
-            print("-" * 60)
+        self._check_not_empty()
 
-            # Check for Null Values
-            print("\nCheck if any Columns have Null Values:")
-            print(self.isnull().sum())
-            print("-" * 60)
+        print("Descriptive Statistics:")
+        print(self.describe(include=['object', 'float', 'int', 'category', 'bool']).T)
+        print("-" * 60)
 
-            # Check for Duplicated Rows
-            print("\nCheck for Duplicated Rows in Dataframe:")
-            print(self.duplicated().sum())
+        print("\nNumber of nulls in each column:")
+        print(self.isnull().sum())
+        print("-" * 60)
 
-        except Exception as e:
-            print(f"An error occurred: {e}")
+        print("\nDuplicate Rows:")
+        print(self.duplicated().sum())
 
-    # This method displays separated numerical and categorical columns
+    # Identify numerical and categorical columns
     def identify_columns(self: pd.DataFrame) -> None:
-        num_cols: list[str] = [col for col in self.columns if self[col].dtypes in ['int64', 'float64']]  # numerical columns
-        cat_cols: list[str] = [col for col in self.columns if self[col].dtypes not in ['int64', 'float64']]  # categorical columns
+        self._check_not_empty()
 
-        # Output
-        print(f"Numerical columns are: {num_cols}.")
-        print(f"Categorical columns are: {cat_cols}.")
+        num_cols: list[str] = [col for col in self.columns if self[col].dtypes in ['int64', 'float64']]
+        cat_cols: list[str] = [col for col in self.columns if self[col].dtypes not in ['int64', 'float64']]
+
+        print(f"Numerical columns: {num_cols}.")
+        print(f"Categorical columns: {cat_cols}.")
 
     # This method identifies numerical and categorical columns
     def column_analysis(self: pd.DataFrame) -> None:
-        try:
-            # Identify categorical columns
-            category_columns: list[str] = [col for col in self.columns if self[col].dtype in ['object', 'category', 'bool']]
+        self._check_not_empty()
 
-            # Identify numerical columns treated as categorical
-            numerical_but_categorical: list[str] = [col for col in self.columns if self[col].nunique() < 10 and self[col].dtype in ['int64', 'float64']]
+        category_columns: list[str] = [col for col in self.columns if self[col].dtype in ['object', 'category', 'bool']]
 
-            # Identify categorical columns with high cardinality
-            category_with_hi_cardinality: list[str] = [col for col in self.columns if self[col].nunique() > 50 and self[col].dtype in ['category', 'object']]
+        numerical_but_categorical: list[str] = [
+            col for col in self.columns if self[col].nunique() < 10 and self[col].dtype in ['int64', 'float64']
+        ]
 
-            # Filter out numerical_but_categorical from categorical_columns
-            categorical_columns: list[str] = [col for col in category_columns if col not in numerical_but_categorical]
+        category_with_hi_cardinality: list[str] = [
+            col for col in self.columns if self[col].nunique() > 50 and self[col].dtype in ['category', 'object']
+        ]
 
-            # Identify purely numerical columns
-            numerical_columns: list[str] = [col for col in self.columns if self[col].dtype in ['int64','float64']]
-            numerical_columns: list[str] = [col for col in numerical_columns if col not in category_columns]
+        # Filter out numerical_but_categorical from categorical_columns
+        categorical_columns: list[str] = [col for col in category_columns if col not in numerical_but_categorical]
 
-            # Print analysis
-            print(f'Observations : {self.shape[0]}')
-            print(f'Variables : {self.shape[1]}')
-            print(f'Categorical Columns : {len(category_columns)}')
-            print(f'Numerical Columns : {len(numerical_columns)}')
-            print(f'Categorical Columns with High Cardinality : {len(category_with_hi_cardinality)}')
-            print(f'Numerical Columns that are Categorical: {len(numerical_but_categorical)}')
+        # Identify purely numerical columns
+        numerical_columns: list[str] = [col for col in self.columns if self[col].dtype in ['int64', 'float64']]
+        numerical_columns: list[str] = [col for col in numerical_columns if col not in category_columns]
 
-            return category_columns, numerical_columns, category_with_hi_cardinality
-        except Exception as e:
-            print(f"An error occurred during column analysis: {e}")
+        # Print analysis
+        print(f'Observations : {self.shape[0]}')
+        print(f'Variables : {self.shape[1]}')
+        print(f'Categorical Columns : {len(category_columns)}')
+        print(f'Numerical Columns : {len(numerical_columns)}')
+        print(f'Categorical Columns with High Cardinality : {len(category_with_hi_cardinality)}')
+        print(f'Numerical Columns that are Categorical: {len(numerical_but_categorical)}')
 
-    # Method provides summary of categorical column
-    def categorical_column_summary(self: pd.DataFrame, column_name: str, plot: bool = False) -> None:
-        try:
-            # Calculate value counts and ratios
-            value_counts = self[column_name].value_counts()
-            ratios = round(100 * value_counts / len(self), 2)
+        return category_columns, numerical_columns, category_with_hi_cardinality
 
-            # Create a summary DataFrame
-            summary_df = pd.DataFrame({column_name: value_counts, 'Ratio (%)': ratios})
+    # Summary of categorical column
+    def categorical_column_summary(self: pd.DataFrame, column: str, plot: bool = False, warn_on_nulls: bool = True) -> None:
+        self._check_not_empty()
+        self._check_valid_column(column)
+        self._check_cat_column(column)
+        
+        if warn_on_nulls:
+            n_null_values = self[column].isnull().sum()
+            if n_null_values > 0:
+                print(f"Warning: '{column}' has {n_null_values} null(s). Nulls are excluded in calculation.\n")
 
-            # Print the summary
-            print(summary_df)
-            print('-' * 40)
+        # Calculate value counts and ratios
+        value_counts = self[column].value_counts()
+        ratios = round(100 * value_counts / len(self), 2)
 
-            if plot:
-                # Check if the column is boolean
-                if self[column_name].dtype == 'bool':
-                    sns.countplot(x=self[column_name].astype(int), data=self)
-                else:
-                    sns.countplot(x=self[column_name], data=self)
+        summary_df = pd.DataFrame({column: value_counts, 'Ratio (%)': ratios})
 
-                # Show the plot
-                plt.show(block=True)
-        except KeyError:
-            print(f"Column '{column_name}' not found in the DataFrame.")
-        except Exception as e:
-            print(f"An error occurred while summarizing the categorical column: {e}")
+        print(summary_df)
+        print('-' * 40)
 
-    # Method provides summary of numerical column
-    def numerical_column_summary(self: pd.DataFrame, column: str, plot: bool = False) -> None:
-        try:
-            if self[column].dtype not in ['int64', 'float64']:
-                raise ValueError(f"Column '{column}' is not a numerical data type (int64, float64)")
-            quantiles = [0.05,0.10,0.20,0.30,0.40,0.50,0.60,0.70,0.80,0.90,0.95,0.99]
-            summary_df = self[column].describe(quantiles).to_frame()
-            print(summary_df)
+        if plot:
+            # Check if the column is boolean
+            if self[column].dtype == 'bool':
+                sns.countplot(x=self[column].astype(int), data=self)
+            else:
+                sns.countplot(x=self[column], data=self)
 
-            if plot:
-                self[column].hist()
-                plt.xlabel(column)
-                plt.title(column)
-                plt.show()
-            print('-' * 40)
-        except KeyError:
-            print(f"Column '{column}' not found in the DataFrame.")
-        except ValueError as ve:
-            print(ve)
-        except Exception as e:
-            print(f"An error occurred while summarizing the numerical column: {e}")
+            plt.show(block=True)
 
-    # This method cross examines the relationship between categorical columns and target column that is numerical
-    def target_cross_analysis_cat(self: pd.DataFrame, target: str, cat_col: str) -> None:
-        try:
-            if self[target].dtype not in ['int64', 'float64']:
-                raise ValueError(f"{target} column is not numerical data type (int64, float64)")
-            elif self[cat_col].dtype not in ['object', 'category', 'bool']:
-                raise ValueError(f"{cat_col} column is not categorical data type (object, category, bool)")
-            print(pd.DataFrame({'TARGET MEAN': self.groupby(cat_col)[target].mean().sort_values(ascending=False)}))
-        except KeyError as ke:
-            print(f"Column not found: {ke}")
-        except ValueError as ve:
-            print(ve)
-        except Exception as e:
-            print(f"An error occurred during target cross-analysis: {e}")
+    # Summary of numerical column
+    def numerical_column_summary(self: pd.DataFrame, column: str, plot: bool = False, warn_on_nulls: bool = True) -> None:
+        self._check_not_empty()
+        self._check_valid_column(column)
+        self._check_num_column(column)
+        
+        if warn_on_nulls:
+            n_null_values = self[column].isnull().sum()
+            if n_null_values > 0:
+                print(f"Warning: '{column}' has {n_null_values} null(s). Nulls are excluded in calculation.\n")
+        
 
-    # This method cross examines the relationship between numerical columns and target column regardless of target datatype
-    def target_cross_analysis_num(self: pd.DataFrame, target: str, num_col: str) -> None:
-        try:
-            if self[num_col].dtype not in ['int64', 'float64']:
-                raise ValueError(f"{num_col} column is not numerical data type (int64, float64)")
-            result = self.groupby(target)[num_col].mean().sort_index(ascending=False)
-            print(result)
-        except KeyError as ke:
-            print(f"Column not found: {ke}")
-        except ValueError as ve:
-            print(ve)
-        except Exception as e:
-            print(f"An error occurred during target cross-analysis: {e}")
+        quantiles = [0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 0.95, 0.99]
+        summary_df = self[column].describe(quantiles).to_frame()
+        print(summary_df)
+
+        if plot:
+            self[column].hist()
+            plt.xlabel(column)
+            plt.title(column)
+            plt.show()
+        print('-' * 40)
+
+    # Cross examines the relationship between categorical columns and target column that is numerical
+    def target_cross_analysis_cat(self: pd.DataFrame, target: str, cat_col: str, warn_on_nulls: bool = True) -> None:
+        self._check_not_empty()
+        self._check_valid_column(target)
+        self._check_valid_column(cat_col)
+        self._check_num_column(target)
+        self._check_cat_column(cat_col)
+        
+        if warn_on_nulls:
+            n_null_target = self[target].isnull().sum()
+            n_null_cat = self[cat_col].isnull().sum()
+            if n_null_target > 0 or n_null_cat > 0:
+                print(f"Warning: '{target}' has {n_null_target} nulls, '{cat_col}' has {n_null_cat} nulls. Nulls in '{target}' are ignored in the mean. Nulls in '{cat_col}' will be omitted.")
+        
+        result = self.groupby(cat_col)[target].mean().sort_values(ascending=False)
+        print(pd.DataFrame({'TARGET MEAN': result}))
+
+    # Cross examines the relationship between numerical columns and target column regardless of target datatype
+    def target_cross_analysis_num(self: pd.DataFrame, target: str, num_col: str, warn_on_nulls: bool = True) -> None:
+        self._check_not_empty()
+        self._check_valid_column(target)
+        self._check_valid_column(num_col)
+        self._check_num_column(num_col)
+        
+        if warn_on_nulls:
+            n_null_target = self[target].isnull().sum()
+            n_null_num = self[num_col].isnull().sum()
+            if n_null_target > 0 or n_null_num > 0:
+                print(
+                    f"Warning: '{target}' has {n_null_target} nulls, '{num_col}' has {n_null_num} nulls. "
+                    "Nulls in '{num_col}' are ignored in the mean. Nulls in '{target}' will form their own group."
+                )
+        
+        result = self.groupby(target)[num_col].mean().sort_index(ascending=False)
+        print(result)
 
     # Normalization of numerical column
-    def normalize(self: pd.DataFrame, col: str) -> None:
-        try:
-            if col not in self.columns:
-                raise ValueError(f"'{col}' not a column in DataFrame")
-            if self[col].dtype not in ['int64', 'float64']:
-                raise ValueError(f"'{col}' column not numerical data type (int64, float64)")
-            self[col] = (self[col] - self[col].mean()) / self[col].std()
-        except ValueError as ve:
-            print(ve)
-        except Exception as e:
-            print(f"An error occurred during normalization: {e}")
+    def normalize(self: pd.DataFrame, column: str, warn_on_nulls: bool = True) -> None:
+        self._check_not_empty()
+        self._check_valid_column(column)
+        self._check_num_column(column)
+        
+        if warn_on_nulls:
+            n_null_col = self[column].isnull().sum()
+            if n_null_col > 0:
+                print(f"Warning: {column} column has {n_null_col} null value(s). Normalization complete, nulls remain in column")
 
-    # This method performs imputation on an entire DataFrame regardless of datatype
+        self[column] = (self[column] - self[column].mean()) / self[column].std()
+
+    # Imputate missing all missing data.
     def complete_imputation(self: pd.DataFrame) -> None:
-        try:
-            for col in self.columns:
-                if self[col].dtype in ['int64', 'float64'] and self[col].isna().any():
-                    self[col].fillna(self[col].mean(), inplace=True)  # fill numerical missing data with mean of column
-                elif self[col].dtype in ['object', 'category', 'bool'] and self[col].isna().any():
-                    self[col].fillna(self[col].mode().iloc[0], inplace=True)  # fill categorical missing data with mode of column
-        except Exception as e:
-            print(f"An error occurred during complete imputation: {e}")
+        self._check_not_empty()
+        for column in self.columns:
+            if self[column].dtype in ['int64', 'float64'] and self[column].isna().any():
+                self[column] = self[column].fillna(self[column].mean())
+            elif self[column].dtype in ['object', 'category', 'bool'] and self[column].isna().any():
+                # Handle columns where all values are null, so mode() returns empty
+                if self[column].mode().empty:
+                    raise ValueError(f"Column '{column}' contains only null values. Imputation with mode is not possible.")
+                self[column] = self[column].fillna(self[column].mode().iloc[0])
 
-    # This method uses the interquartile range method to identify and remove outliers in a column
+    # Identify and remove outilier in column using the interquartile range method (IQR)
     def remove_outlier_iqr(self: pd.DataFrame, column: str) -> None:
-        try:
-            if self[column].dtype not in ['int64', 'float64']:
-                raise ValueError(f'[{column}] not a numerical data type (int64, float64)')
-            
-            # Drop null values from the column
-            column_data = self[column].dropna()
+        self._check_not_empty()
+        self._check_valid_column(column)
+        self._check_num_column(column)
+        
+        column_data = self[column].dropna()
 
-            Q1 = np.percentile(column_data, 25, interpolation='midpoint')
-            Q3 = np.percentile(column_data, 75, interpolation='midpoint')
-            IQR = Q3 - Q1
+        if column_data.empty:
+            raise ValueError(f"Column '{column}' contains only null values. Cannot compute IQR outliers.")
 
-            # Calculate the bounds for outliers
-            upper_bound = Q3 + 1.5 * IQR
-            lower_bound = Q1 - 1.5 * IQR
+        Q1 = np.percentile(column_data, 25, method='midpoint')
+        Q3 = np.percentile(column_data, 75, method='midpoint')
+        IQR = Q3 - Q1
 
-            # Identify the outliers
-            outliers = self[(self[column] < lower_bound) | (self[column] > upper_bound)]
+        upper_bound = Q3 + 1.5 * IQR
+        lower_bound = Q1 - 1.5 * IQR
 
-            # Remove the outliers
-            self.drop(outliers.index, inplace=True)
-        except KeyError:
-            print(f"Column '{column}' not found in the DataFrame.")
-        except ValueError as ve:
-            print(ve)
-        except Exception as e:
-            print(f"An error occurred while removing outliers: {e}")
+        # Identify the outliers
+        outliers = self[(self[column] < lower_bound) | (self[column] > upper_bound)]
 
-    # This method produces the upper and lower bound rows of a DataFrame using the IQR method for a given column
+        # Remove the outliers
+        self.drop(outliers.index, inplace=True)
+
+    # Produce the upper and lower bound rows of a DataFrame using the IQR method for a given column
     def outlier_limits_iqr(self: pd.DataFrame, column: str) -> pd.DataFrame:
-        try:
-            if self[column].dtype not in ['int64', 'float64']:
-                raise ValueError(f'[{column}] not a numerical data type (int64, float64)')
+        self._check_not_empty()
+        self._check_valid_column(column)
+        self._check_num_column(column)
 
-            Q1, Q3 = self[column].quantile([0.25, 0.75])
-            IQR = Q3 - Q1
-            upper_limit = Q3 + 1.5 * IQR
-            lower_limit = Q1 - 1.5 * IQR
-            return self[(self[column] < lower_limit) | (self[column] > upper_limit)]
-        except KeyError:
-            print(f"Column '{column}' not found in the DataFrame.")
-        except ValueError as ve:
-            print(ve)
-        except Exception as e:
-            print(f"An error occurred while calculating outlier limits: {e}")
+        column_data = self[column].dropna()
+        if column_data.empty:
+            raise ValueError(f"Column '{column}' contains only null values. Cannot compute IQR outliers.")
 
-    # This method displays all outliers in the DataFrame using the IQR method
+        Q1, Q3 = column_data.quantile([0.25, 0.75])
+        IQR = Q3 - Q1
+        upper_limit = Q3 + 1.5 * IQR
+        lower_limit = Q1 - 1.5 * IQR
+
+        return self[(self[column] < lower_limit) | (self[column] > upper_limit)]
+
+    # Displays all outliers in the DataFrame using the IQR method
     def show_outlier_rows(self: pd.DataFrame) -> None:
-        try:
-            num_cols: list[str] = [col for col in self.columns if self[col].dtype in ['int64', 'float64']]
+        self._check_not_empty()
+        num_cols: list[str] = [col for col in self.columns if self[col].dtype in ['int64', 'float64']]
 
-            for col in num_cols:
-                print('-'*40, col, '-'*40)
-                print(self.outlier_limits_iqr(col))
-        except Exception as e:
-            print(f"An error occurred while showing outlier rows: {e}")
+        if not num_cols:
+            print("No numerical columns in the DataFrame.")
+            return
 
-    # This method type casts an object datatype into a category datatype
+        for col in num_cols:
+            print('-' * 40, col, '-' * 40)
+            outliers = self.outlier_limits_iqr(col)
+            if outliers.empty:
+                print("No outliers detected.")
+            else:
+                print(outliers)
+
+    # Type casts an object datatype into a category datatype
     def category_datatype(self: pd.DataFrame) -> None:
-        try:
-            self[self.select_dtypes(include=['object']).columns] = self.select_dtypes(include=['object']).astype('category')
-        except Exception as e:
-            print(f"An error occurred while converting object to category: {e}")
+        self._check_not_empty()
+        obj_cols = self.select_dtypes(include=['object']).columns
+        if not obj_cols.any():
+            # No object columns to convert
+            return
+        self[obj_cols] = self[obj_cols].astype('category')
 
-    # This method replaces values in a DataFrame that represent an unknown value but are not recorded as null (e.g. -, ?, *)
-    def turn_null(self: pd.DataFrame, val: Union[int, float, str]) -> None:
-        try:
-            self[self.columns] = self.apply(lambda col: col.replace({val: np.nan}))
-        except Exception as e:
-            print(f"An error occurred while turning values to null: {e}")
+    # Replace values in a DataFrame that represent an unknown value but are not recorded as null (e.g. -, ?, *)
+    def turn_null(self: pd.DataFrame, val: int | float | str) -> None:
+        self._check_not_empty()
+        self[self.columns] = self.apply(lambda col: col.replace({val: np.nan}))
 
-    # This method outputs the percentage of null values in each column of the DataFrame
+    # Output the percentage of null values in each column of the DataFrame
     def null_percent(self: pd.DataFrame) -> None:
-        try:
-            print(self.isnull().mean().round(4).mul(100).sort_values(ascending=False))
-        except Exception as e:
-            print(f"An error occurred while calculating null percentages: {e}")
+        self._check_not_empty()
+        print(self.isnull().mean().round(4).mul(100).sort_values(ascending=False))
 
-    # Drop columns in a DataFrame when the percentage of null values exceed a user-defined threshold
-    def drop_null_by_percent(self: pd.DataFrame, percent: Union[int, float]) -> None:
-        try:
-            min_count = int(((100 - percent) / 100) * self.shape[0] + 1)
-            self.dropna(axis=1, thresh=min_count, inplace=True)
-        except Exception as e:
-            print(f"An error occurred while dropping columns by null percentage: {e}")
+    # Drop columns in a DataFrame with a certain percentage of null values
+    def drop_null_by_percent(self: pd.DataFrame, percent: int | float) -> None:
+        self._check_not_empty()
+        if not (0 <= percent <= 100):
+            raise ValueError("Parameter 'percent' must be between 0 and 100.")
+        min_count = int(((100 - percent) / 100) * self.shape[0] + 1)
+        self.dropna(axis=1, thresh=min_count, inplace=True)
 
-    # This method type casts an object datatype into a boolean datatype
-    def bool_datatype(self: pd.DataFrame, column: str, true_value: Union[int, float, str], false_value: Union[int, float, str]) -> None:
+    # Type casts an object datatype into a boolean datatype
+    def bool_datatype(self: pd.DataFrame, column: str, true_value: int | float | str, false_value: int | float | str) -> None:
         """
         This method type casts an object datatype into a boolean datatype.
 
@@ -295,38 +335,25 @@ class Wrangler(pd.DataFrame):
         - true_value: The value in the column to be considered as True.
         - false_value: The value in the column to be considered as False.
         """
-        try:
-            if not isinstance(column, str):
-                raise ValueError(f'[{column}] parameter is not a string datatype')
+        self._check_not_empty()
+        self._check_valid_column(column)
+        
+        if not isinstance(column, str):
+            raise ValueError(f"Parameter 'column' must be a string.")
+        unique_values = set(self[column].unique())
+        expected_values = {true_value, false_value}
+        if not unique_values.issubset(expected_values):
+            raise ValueError(f"Column '{column}' contains values other than the specified true/false values ({expected_values}).")
+        encoded_values = {true_value: True, false_value: False}
+        self[column] = self[column].map(encoded_values).astype(bool)
 
-            if not all(self[column].isin([true_value, false_value])):
-                raise ValueError('One or more values not in column')
-
-            encoded_values = {true_value: True, false_value: False}
-            self[column] = self[column].map(encoded_values).astype(bool)
-        except KeyError:
-            print(f"Column '{column}' not found in the DataFrame.")
-        except ValueError as ve:
-            print(ve)
-        except Exception as e:
-            print(f"An error occurred while converting to boolean datatype: {e}")
-
-    # This method prints a dictionary with the unique values of a column and the number of occurrences
+    # Print a dictionary with the unique values of a column and the number of occurrences
     def counter(self: pd.DataFrame, column: str) -> None:
-        try:
-            # Check if the column exists in the DataFrame
-            if column not in self.columns:
-                raise ValueError(f"Column '{column}' not found in the DataFrame")
-
-            # Use Counter to count occurrences of unique values in the column
-            counts = dict(Counter(self[column]))
-
-            # Print the dictionary
-            print(counts)
-        except ValueError as ve:
-            print(ve)
-        except Exception as e:
-            print(f"An error occurred while counting values: {e}")
+        self._check_not_empty()
+        self._check_valid_column(column)
+        
+        counts = dict(Counter(self[column]))
+        print(counts)
 
 """ New class for graphing values of dataset """
 class Graphs:
@@ -334,15 +361,32 @@ class Graphs:
         self.df = df
         self.style = style
 
+    def _validate_not_empty(self) -> None:
+        if self.df.empty:
+            raise ValueError("Dateframe is empty and cannot be graphed. Please supply data before calling this method.")
+        
+    def _check_column_present(self, column: str) -> None:
+        if column not in self.df.columns:
+            raise KeyError(f'Column "{column}" not found in DataFrame')
+        
+    def _check_no_nulls(self, column: str) -> None:
+        if self.df[column].isnull().any():
+            raise ValueError(f'Column "{column}" contains null values')
+        
+    def _check_categorical_column(self, column: str) -> None:
+        if self.df[column].dtype not in ['object', 'category', 'bool']:
+            raise ValueError(f"Column '{column}' is not a categorical datatype.")
+        
+    def _check_numerical_column(self, column: str) -> None:
+        if self.df[column].dtype not in ['int64', 'float64']:
+            raise ValueError(f"Column '{column}' not a numerical data type.")
+
     """ Single Visualization Graphs """
     def histogram(self, column: str) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if column not in self.df.columns:
-            raise KeyError(f'Column "{column}" not found in dataframe')
-        if self.df[column].isnull().any():
-            raise ValueError(f'Column "{column}" contains null values')
+        self._validate_not_empty()
+        self._check_column_present(column)
+        self._check_no_nulls(column)
         
         # plotting
         with plt.style.context(self.style):
@@ -355,24 +399,13 @@ class Graphs:
 
     def categorical_boxplot(self, categorical_column: str, numerical_column: str) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if categorical_column not in self.df.columns:
-            raise KeyError(f'Column "{categorical_column}" not found in dataframe')
-        if numerical_column not in self.df.columns:
-            raise KeyError(f'Column "{numerical_column}" not found in dataframe')
-        if self.df[categorical_column].isnull().any():
-            raise ValueError(f'Column "{categorical_column}" contains null values')
-        if self.df[numerical_column].isnull().any():
-            raise ValueError(f'Column "{numerical_column}" contains null values')
-
-        cat_dtype = self.df[categorical_column].dtype
-        num_dtype = self.df[numerical_column].dtype
-
-        if cat_dtype not in ['object', 'category', 'bool']:
-            raise ValueError(f'[{categorical_column}] not a categorical data type (object, category, bool)')
-        if num_dtype not in ['int64', 'float64']:
-            raise ValueError(f'[{numerical_column}] not a numerical data type (int64, float64)')
+        self._validate_not_empty()
+        self._check_column_present(categorical_column)
+        self._check_column_present(numerical_column)
+        self._check_no_nulls(categorical_column)
+        self._check_no_nulls(numerical_column)
+        self._check_categorical_column(categorical_column)
+        self._check_numerical_column(numerical_column)
 
         # Plotting
         with plt.style.context(self.style):
@@ -380,7 +413,7 @@ class Graphs:
             sns.boxplot(data=self.df, x=categorical_column, y=numerical_column, ax=ax)
             ax.set_title(f"{numerical_column.title().replace('_', ' ')} by {categorical_column.title().replace('_', ' ')} Boxplot")
 
-            medians = self.df.groupby(categorical_column)[numerical_column].median()
+            medians = self.df.groupby(categorical_column, observed=False)[numerical_column].median()
             obs = self.df[categorical_column].value_counts().reindex(medians.index).values
 
             pos = range(len(obs))
@@ -392,36 +425,112 @@ class Graphs:
 
         plt.show()
 
-    def categorical_boxplot_with_hue(self, categorical_column: str, numerical_column: str, hue_column: str) -> None:
+    def cate_boxplot(
+        self,
+        categorical_column: str,
+        numerical_column: str,
+        hue_column: str = None
+    ) -> None:
+        self._validate_not_empty()
+        self._check_column_present(categorical_column)
+        self._check_column_present(numerical_column)
+        self._check_no_nulls(categorical_column)
+        self._check_no_nulls(numerical_column)
+        self._check_categorical_column(categorical_column)
+        self._check_numerical_column(numerical_column)
+        if hue_column:
+            self._check_column_present(hue_column)
+            self._check_no_nulls(hue_column)
+            self._check_categorical_column(hue_column)
+
+        with plt.style.context(self.style):
+            fig, ax = plt.subplots(figsize=(17, 8))
+            sns.boxplot(
+                data=self.df,
+                x=categorical_column,
+                y=numerical_column,
+                hue=hue_column,
+                showmeans=False,
+                ax=ax
+            )
+
+            # Plot title
+            title = f"{numerical_column.title().replace('_', ' ')} by {categorical_column.title().replace('_', ' ')} Boxplot"
+            if hue_column:
+                title += f" with {hue_column.title().replace('_', ' ')} Grouping"
+            ax.set_title(title)
+            ax.grid(False)
+
+            # --- Add sample sizes above each box ---
+            if not hue_column:
+                counts = self.df[categorical_column].value_counts().sort_index()
+                medians = self.df.groupby(categorical_column, observed=False)[numerical_column].median()
+                for i, label in enumerate(ax.get_xticklabels()):
+                    n = counts.iloc[i]
+                    y = medians.iloc[i]
+                    ax.text(
+                        i, y + 0.03 * (self.df[numerical_column].max() - self.df[numerical_column].min()),
+                        f'n: {n}',
+                        ha='center', va='bottom', fontsize=12, color='black', fontweight='semibold'
+                    )
+            else:
+                # Get the order as used by seaborn for ticks/hues
+                cat_order = [tick.get_text() for tick in ax.get_xticklabels()]
+                hue_order = [t.get_text() for t in ax.legend_.texts]
+
+                # Group counts
+                counts = (
+                    self.df.groupby([categorical_column, hue_column], observed=False)
+                    .size()
+                    .unstack(fill_value=0)
+                    .reindex(index=cat_order, columns=hue_order)
+                )
+                medians = (
+                    self.df.groupby([categorical_column, hue_column], observed=False)[numerical_column]
+                    .median()
+                    .unstack()
+                    .reindex(index=cat_order, columns=hue_order)
+                )
+
+                # Position annotation above each box:
+                n_hue = len(hue_order)
+                width = 0.8  # default seaborn width
+                for i, cat in enumerate(cat_order):
+                    for j, hue in enumerate(hue_order):
+                        n = counts.loc[cat, hue]
+                        y = medians.loc[cat, hue]
+                        # Compute the x position for this box:
+                        x = i - width / 2 + (j + 0.5) * width / n_hue
+                        ax.text(
+                            x, y + 0.03 * (self.df[numerical_column].max() - self.df[numerical_column].min()),
+                            f'n: {n}',
+                            ha='center', va='bottom', fontsize=11, color='black', fontweight='semibold'
+                        )
+
+            # Move legend out of plot for clarity if hue present
+            if hue_column:
+                ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+            plt.tight_layout()
+            plt.show()
+
+    def categorical_boxplot_with_hue(
+            self,
+            categorical_column: str,
+            numerical_column: str, 
+            hue_column: str
+    ) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if categorical_column not in self.df.columns:
-            raise KeyError(f'Column "{categorical_column}" not found in dataframe')
-        if numerical_column not in self.df.columns:
-            raise KeyError(f'Column "{numerical_column}" not found in dataframe')
-        if hue_column not in self.df.columns:
-            raise KeyError(f'Column "{hue_column}" not found in dataframe')
-        if self.df[categorical_column].isnull().any():
-            raise ValueError(f'Column "{categorical_column}" contains null values')
-        if self.df[numerical_column].isnull().any():
-            raise ValueError(f'Column "{numerical_column}" contains null values')
-        if self.df[hue_column].isnull().any():
-            raise ValueError(f'Column "{hue_column}" contains null values')
-
-        cat_dtype = self.df[categorical_column].dtype
-        num_dtype = self.df[numerical_column].dtype
-        hue_dtype = self.df[hue_column].dtype
-
-        valid_cat_types = ['object', 'category', 'bool']
-        valid_num_types = ['int64', 'float64']
-
-        if cat_dtype not in valid_cat_types:
-            raise ValueError(f'[{categorical_column}] not a categorical data type (object, category, bool)')
-        if num_dtype not in valid_num_types:
-            raise ValueError(f'[{numerical_column}] not a numerical data type (int64, float64)')
-        if hue_dtype not in valid_cat_types:
-            raise ValueError(f'[{hue_column}] not a categorical data type (object, category, bool)')
+        self._validate_not_empty()
+        self._check_column_present(categorical_column)
+        self._check_column_present(numerical_column)
+        self._check_column_present(hue_column)
+        self._check_no_nulls(categorical_column)
+        self._check_no_nulls(numerical_column)
+        self._check_no_nulls(hue_column)
+        self._check_categorical_column(categorical_column)
+        self._check_numerical_column(numerical_column)
+        self._check_categorical_column(hue_column)
 
         # Plotting
         with plt.style.context(self.style):
@@ -434,34 +543,18 @@ class Graphs:
 
     def categorical_barplot(self, cat_column: str, num_column: str, hue_col: Optional[str] = None, limit: Optional[int] = None) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if cat_column not in self.df.columns:
-            raise KeyError(f'Column "{cat_column}" not found in dataframe')
-        if num_column not in self.df.columns:
-            raise KeyError(f'Column "{num_column}" not found in dataframe')
-        if hue_col and hue_col not in self.df.columns:
-            raise KeyError(f'Column "{hue_col}" not found in dataframe')
-        if self.df[cat_column].isnull().any():
-            raise ValueError(f'Column "{cat_column}" contains null values')
-        if self.df[num_column].isnull().any():
-            raise ValueError(f'Column "{num_column}" contains null values')
-        if hue_col and self.df[hue_col].isnull().any():
-            raise ValueError(f'Column "{hue_col}" contains null values')
+        self._validate_not_empty()
+        self._check_column_present(cat_column)
+        self._check_column_present(num_column)
+        self._check_no_nulls(cat_column)
+        self._check_no_nulls(num_column)
+        self._check_categorical_column(cat_column)
+        self._check_numerical_column(num_column)
+        if hue_col:
+            self._check_column_present(hue_col)
+            self._check_categorical_column(hue_col)
+            self._check_no_nulls(hue_col)
 
-        cat_dtype = self.df[cat_column].dtype
-        num_dtype = self.df[num_column].dtype
-        hue_dtype = self.df[hue_col].dtype if hue_col else None
-
-        valid_cat_types = ['object', 'category', 'bool']
-        valid_num_types = ['int64', 'float64']
-
-        if cat_dtype not in valid_cat_types:
-            raise ValueError(f'[{cat_column}] not a categorical data type (object, category, bool)')
-        if num_dtype not in valid_num_types:
-            raise ValueError(f'[{num_column}] not a numerical data type (int64, float64)')
-        if hue_col and hue_dtype not in valid_cat_types:
-            raise ValueError(f'[{hue_col}] not a categorical data type (object, category, bool)')
         if limit is not None and not isinstance(limit, int):
             raise ValueError(f'limit should be an integer, got {type(limit)}')
 
@@ -471,9 +564,10 @@ class Graphs:
             if limit is not None:
                 order = self.df.groupby(cat_column).mean(numeric_only=True).sort_values(num_column, ascending=False).iloc[:limit].index
             else:
-                order = self.df.groupby(cat_column).mean(numeric_only=True).sort_values(num_column, ascending=False).index
-            sns.barplot(data=self.df, x=cat_column, y=num_column, hue=hue_col, order=order, errwidth=0, ax=ax)
+                order = self.df.groupby(cat_column, observed=False).mean(numeric_only=True).sort_values(num_column, ascending=False).index
+            sns.barplot(data=self.df, x=cat_column, y=num_column, hue=hue_col, order=order, err_kws={'linewidth': 0}, ax=ax)
 
+            ax.set(ylabel=None)
             ax.grid(False)
             if limit is not None:
                 title = f"Average {num_column.replace('_', ' ').title()} by {cat_column.replace('_', ' ').title()} Barplot [Top {limit}]"
@@ -484,50 +578,40 @@ class Graphs:
             ax.set_title(title)
 
             for p in ax.patches:
+                count = int(p.get_height())
+                if count == 0:
+                    continue # skip annotating zero-height (empty) bars
                 ax.annotate(format(p.get_height(), '.1f'),
                             (p.get_x() + p.get_width() / 2, p.get_height()),
                             ha='center', va='center',
                             size=15, xytext=(0, 8),
                             textcoords='offset points')
 
+        plt.yticks([])
         plt.show()
 
     def scatterplot(self, num_col1: str, num_col2: str, hue_col: Optional[str] = None) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if num_col1 not in self.df.columns:
-            raise KeyError(f'Column "{num_col1}" not found in dataframe')
-        if num_col2 not in self.df.columns:
-            raise KeyError(f'Column "{num_col2}" not found in dataframe')
-        if hue_col and hue_col not in self.df.columns:
-            raise KeyError(f'Column "{hue_col}" not found in dataframe')
-        if self.df[num_col1].isnull().any():
-            raise ValueError(f'Column "{num_col1}" contains null values')
-        if self.df[num_col2].isnull().any():
-            raise ValueError(f'Column "{num_col2}" contains null values')
-        if hue_col and self.df[hue_col].isnull().any():
-            raise ValueError(f'Column "{hue_col}" contains null values')
-
-        num_dtype1 = self.df[num_col1].dtype
-        num_dtype2 = self.df[num_col2].dtype
-        hue_dtype = self.df[hue_col].dtype if hue_col else None
-
-        valid_num_types = ['int64', 'float64']
-        valid_cat_types = ['object', 'category', 'bool']
-
-        if num_dtype1 not in valid_num_types:
-            raise ValueError(f'[{num_col1}] not a numerical data type (int64, float64)')
-        if num_dtype2 not in valid_num_types:
-            raise ValueError(f'[{num_col2}] not a numerical data type (int64, float64)')
-        if hue_col and hue_dtype not in valid_cat_types:
-            raise ValueError(f'[{hue_col}] not a categorical data type (object, category, bool)')
+        self._validate_not_empty()
+        self._check_column_present(num_col1)
+        self._check_column_present(num_col2)
+        self._check_numerical_column(num_col1)
+        self._check_numerical_column(num_col2)
+        self._check_no_nulls(num_col1)
+        self._check_no_nulls(num_col2)
+        if hue_col is not None:
+            self._check_column_present(hue_col)
+            self._check_categorical_column(hue_col)
+            self._check_no_nulls(hue_col)
         
         # Plotting
         with plt.style.context(self.style):
             fig, ax = plt.subplots(figsize=(17, 8))
             sns.scatterplot(data=self.df, x=num_col1, y=num_col2, hue=hue_col, ax=ax)
-            ax.set_title(f"{num_col1.replace('_', ' ').title()} vs {num_col2.replace('_', ' ').title()} Scatterplot")
+            title = f"{num_col1.replace('_', ' ').title()} vs {num_col2.replace('_', ' ').title()} Scatterplot"
+            if hue_col:
+                title += f" with {hue_col.replace('_', ' ').title()} Grouping"
+            ax.set_title(title)
             plt.grid(False)
 
         plt.show()
@@ -535,23 +619,13 @@ class Graphs:
     # This method returns seaborn jointplot with regression line
     def jointplot(self, num_col1: str, num_col2: str) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if num_col1 not in self.df.columns:
-            raise KeyError(f'Column "{num_col1}" not found in dataframe')
-        if num_col2 not in self.df.columns:
-            raise KeyError(f'Column "{num_col2}" not found in dataframe')
-
-        if self.df[num_col1].isnull().any():
-            raise ValueError(f'Column "{num_col1}" contains null values')
-        if self.df[num_col2].isnull().any():
-            raise ValueError(f'Column "{num_col2}" contains null values')
-
-        numerical_types = ['int64', 'float64']
-        if self.df[num_col1].dtype not in numerical_types:
-            raise ValueError(f'Column [{num_col1}] is not a numerical data type (int64, float64)')
-        elif self.df[num_col2].dtype not in numerical_types:
-            raise ValueError(f'Column [{num_col2}] is not a numerical data type (int64, float64)')
+        self._validate_not_empty()
+        self._check_column_present(num_col1)
+        self._check_column_present(num_col2)
+        self._check_no_nulls(num_col1)
+        self._check_no_nulls(num_col2)
+        self._check_numerical_column(num_col1)
+        self._check_numerical_column(num_col2)
 
         # Plotting
         with plt.style.context(self.style):
@@ -586,17 +660,15 @@ class Graphs:
     # This method returns seaborn heatmap
     def list_heatmap(self, columns: list) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
+        self._validate_not_empty()
+
         if not isinstance(columns, list):
             raise ValueError('Parameter must be a list')
+        
         for col in columns:
-            if col not in self.df.columns:
-                raise KeyError(f'Column "{col}" not found in dataframe')
-            if self.df[col].isnull().any():
-                raise ValueError(f'Column "{col}" contains null values')
-            if self.df[col].dtype not in ['int64', 'float64']:
-                raise ValueError(f'{col} is not a numerical data type (int64, float64)')
+            self._check_column_present(col)
+            self._check_numerical_column(col)
+            self._check_no_nulls(col)
 
         with plt.style.context(self.style):
             fig, ax = plt.subplots(figsize=(17, 8))
@@ -613,16 +685,13 @@ class Graphs:
     # This method returns seaborn univariate barplot with grouping if desired
     def countplot(self, column: str, hue_col: Optional[str] = None, limit: Optional[int] = None) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if column not in self.df.columns:
-            raise ValueError(f'Column "{column}" not in the dataframe')
-        if hue_col not in self.df.columns and hue_col is not None:
-            raise ValueError(f'Column "{hue_col}" not in the dataframe')
-        if self.df[column].isnull().any():
-            raise ValueError(f'Column "{column}" contains null values')
-        if hue_col and self.df[hue_col].isnull().any():
-            raise ValueError(f'Column "{hue_col}" contains null values')
+        self._validate_not_empty()
+        self._check_column_present(column)
+        self._check_no_nulls(column)
+        if hue_col is not None:
+            self._check_column_present(hue_col)
+            self._check_no_nulls(hue_col)
+            self._check_categorical_column(hue_col)
 
         with plt.style.context(self.style):
             fig, ax = plt.subplots(figsize=(17, 8))
@@ -640,49 +709,65 @@ class Graphs:
             if hue_col is not None:
                 title += f' with {hue_col.title().replace("_", " ")} Categories'
             ax.set_title(title)
+            ax.set(xlabel=None)
+            ax.set(ylabel=None)
 
-            total = len(self.df[column])
+            # total = len(self.df[column])
             for p in ax.patches:
-                percentage = f'{100 * p.get_height() / total:.1f}%\n'
+                count = int(p.get_height())
+                if count == 0:
+                    continue #skip annotating zero-height (empty) bars
                 x = p.get_x() + p.get_width() / 2
                 y = p.get_height()
-                ax.annotate(percentage, (x, y), ha='center', va='center', fontsize=11)
-
+                ax.annotate(f"{count}", (x, y), ha="center", va="bottom", fontsize=13, fontweight="semibold")
         # Display the plot
+        plt.yticks(ticks=[])
         plt.show()
 
     # This method returns seaborn line graph with color encoding from a certian column if desired
     def lineplot(self, x_column: str, y_column: str, hue_column: Optional[str] = None, errors: Optional[str] = None) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if x_column not in self.df.columns:
-            raise KeyError(f'Column "{x_column}" not found in dataframe')
-        if y_column not in self.df.columns:
-            raise KeyError(f'Column "{y_column}" not found in dataframe')
-        if hue_column and hue_column not in self.df.columns:
-            raise KeyError(f'Column "{hue_column}" not found in dataframe')
-        if self.df[x_column].isnull().any():
-            raise ValueError(f'Column "{x_column}" contains null values')
-        if self.df[y_column].isnull().any():
-            raise ValueError(f'Column "{y_column}" contains null values')
-        if hue_column and self.df[hue_column].isnull().any():
-            raise ValueError(f'Column "{hue_column}" contains null values')
-
-        valid_cat_types: list[str] = ['object', 'category', 'bool']
-
-        if self.df[x_column].dtype not in valid_cat_types:
-            raise ValueError(f'[{x_column}] not a categorical data type (object, category, bool)')
-        elif self.df[y_column].dtype not in ['int64', 'float64']:
-            raise ValueError(f'[{y_column}] not a numerical data type (int64, float64)')
-        elif hue_column is not None and self.df[hue_column].dtype not in valid_cat_types:
-            raise ValueError(f'[{hue_column}] not a categorical data type (object, category, bool)')
+        self._validate_not_empty()
+        self._check_column_present(x_column)
+        self._check_column_present(y_column)
+        self._check_no_nulls(x_column)
+        self._check_no_nulls(y_column)
+        self._check_categorical_column(x_column)
+        self._check_numerical_column(y_column)
+        if hue_column is not None:
+            self._check_column_present(hue_column)
+            self._check_no_nulls(hue_column)
+            self._check_categorical_column(hue_column)
 
         # Plotting
         with plt.style.context(self.style):
                 fig, ax = plt.subplots(figsize=(17, 8))
-                sns.lineplot(data = self.df, x = x_column, y = y_column, hue = hue_column, errorbar = errors, ax=ax)
+
+                sns.lineplot(data = self.df, 
+                             x = x_column, 
+                             y = y_column, 
+                             hue = hue_column, 
+                             marker='o', 
+                             errorbar = errors, 
+                             ax=ax
+                )
+                ax.set_ylabel(None)
                 ax.grid(False)
+
+                # Get lines and annotate each point on each line
+                for line in ax.lines:
+                    x_data = line.get_xdata()
+                    y_data = line.get_ydata()
+                    for (x, y) in zip(x_data, y_data):
+                        ax.annotate(
+                            f"{y:.2f}",        # Format as you like
+                            (x, y),
+                            textcoords="offset points",
+                            xytext=(0, 15),
+                            ha="center",
+                            fontsize=10,
+                            fontweight="bold"
+                )
 
                 title = f"{x_column.title().replace('_', ' ')} vs {y_column.title().replace('_', ' ')} lineplot"
                 if hue_column is not None:
@@ -690,19 +775,16 @@ class Graphs:
                 ax.set_title(title)
 
         # Display the plot
+        plt.yticks([])
         plt.show()
 
     # This method returns a pie chart
     def pie_chart(self, column: str) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if column not in self.df.columns:
-            raise KeyError(f'Column "{column}" not found in dataframe')
-        if self.df[column].isnull().any():
-            raise ValueError(f'Column "{column}" contains null values')
-        if self.df[column].dtype not in ['object', 'category', 'bool']:
-            raise ValueError(f'Column [{column}] is not a categorical data type (object, category, bool)')
+        self._validate_not_empty()
+        self._check_column_present(column)
+        self._check_categorical_column(column)
+        self._check_no_nulls(column)
 
         # Create the pie chart
         with plt.style.context(self.style):
@@ -727,14 +809,10 @@ class Graphs:
     # This method returns a donut pie chart
     def donut_pie_chart(self, column: str) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if column not in self.df.columns:
-            raise KeyError(f'Column "{column}" not found in dataframe')
-        if self.df[column].isnull().any():
-            raise ValueError(f'Column "{column}" contains null values')
-        if self.df[column].dtype not in ['object', 'category', 'bool']:
-            raise ValueError(f'Column [{column}] is not a categorical data type (object, category, bool)')
+        self._validate_not_empty()
+        self._check_column_present(column)
+        self._check_categorical_column(column)
+        self._check_no_nulls(column)
 
         # Plotting
         with plt.style.context(self.style):
@@ -767,20 +845,13 @@ class Graphs:
 
     def violinplot(self, cat_col: str, num_col: str) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if cat_col not in self.df.columns:
-            raise KeyError(f'Column "{cat_col}" not found in dataframe')
-        if num_col not in self.df.columns:
-            raise KeyError(f'Column "{num_col}" not found in dataframe')
-        if self.df[cat_col].dtype not in ['object', 'category', 'bool']:
-            raise ValueError(f'[{cat_col}] not a categorical data type (object, category, bool)')
-        if self.df[num_col].dtype not in ['int64', 'float64']:
-            raise ValueError(f'[{num_col}] not a numerical data type (int64, float64)')
-        if self.df[cat_col].isnull().any():
-            raise ValueError(f'Column "{cat_col}" contains null values')
-        if self.df[num_col].isnull().any():
-            raise ValueError(f'Column "{num_col}" contains null values')
+        self._validate_not_empty()
+        self._check_column_present(cat_col)
+        self._check_column_present(num_col)
+        self._check_categorical_column(cat_col)
+        self._check_numerical_column(num_col)
+        self._check_no_nulls(cat_col)
+        self._check_no_nulls(num_col)
 
         # Set the plotting style
         with plt.style.context(self.style):
@@ -791,7 +862,7 @@ class Graphs:
             sns.violinplot(data=self.df, x=cat_col, y=num_col, ax=ax)
 
             # Calculate medians and observations for each group
-            medians = self.df.groupby([cat_col])[num_col].median()
+            medians = self.df.groupby([cat_col], observed=False)[num_col].median()
             obs = self.df[cat_col].value_counts().reindex(medians.index).values
 
             # Add labels with number of observations to the plot
@@ -812,27 +883,16 @@ class Graphs:
     # This method shows seaborn violinplot with grouping
     def violinplot_with_hue(self, cat_col: str, num_col: str, hue_col: str) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        valid_cat_dtype: List[str] = ['object', 'category', 'bool']
-        if cat_col not in self.df.columns:
-            raise KeyError(f'Column "{cat_col}" not found in dataframe')
-        if num_col not in self.df.columns:
-            raise KeyError(f'Column "{num_col}" not found in dataframe')
-        if hue_col not in self.df.columns:
-            raise KeyError(f'Column "{hue_col}" not found in dataframe')
-        if self.df[cat_col].dtype not in valid_cat_dtype:
-            raise ValueError(f'[{cat_col}] not a categorical data type (object, category, bool)')
-        if self.df[num_col].dtype not in ['int64', 'float64']:
-            raise ValueError(f'[{num_col}] not a numerical data type (int64, float64)')
-        if self.df[hue_col].dtype not in valid_cat_dtype:
-            raise ValueError(f'[{hue_col}] not a categorical data type (object, category, bool)')
-        if self.df[cat_col].isnull().any():
-            raise ValueError(f'Column "{cat_col}" contains null values')
-        if self.df[num_col].isnull().any():
-            raise ValueError(f'Column "{num_col}" contains null values')
-        if self.df[hue_col].isnull().any():
-            raise ValueError(f'Column "{hue_col}" contains null values')
+        self._validate_not_empty()
+        self._check_column_present(cat_col)
+        self._check_column_present(num_col)
+        self._check_column_present(hue_col)
+        self._check_categorical_column(cat_col)
+        self._check_numerical_column(num_col)
+        self._check_categorical_column(hue_col)
+        self._check_no_nulls(cat_col)
+        self._check_no_nulls(num_col)
+        self._check_no_nulls(hue_col)
 
         # Set the plotting style
         with plt.style.context(self.style):
@@ -857,25 +917,18 @@ class Graphs:
     # The method creates circular bar plot
     def circular_barplot(self, cat_col: str, num_col: str, bar_color: str) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if cat_col not in self.df.columns:
-            raise KeyError(f'Column "{cat_col}" not found in dataframe')
-        if num_col not in self.df.columns:
-            raise KeyError(f'Column "{num_col}" not found in dataframe')
-        if self.df[cat_col].dtype not in ['object', 'category', 'bool']:
-            raise ValueError(f'[{cat_col}] not a categorical data type (object, category, bool)')
-        if self.df[num_col].dtype not in ['int64', 'float64']:
-            raise ValueError(f'[{num_col}] not a numerical data type (int64, float64)')
-        if self.df[cat_col].isnull().any():
-            raise ValueError(f'Column "{cat_col}" contains null values')
-        if self.df[num_col].isnull().any():
-            raise ValueError(f'Column "{num_col}" contains null values')
+        self._validate_not_empty()
+        self._check_column_present(cat_col)
+        self._check_column_present(num_col)
+        self._check_categorical_column(cat_col)
+        self._check_numerical_column(num_col)
+        self._check_no_nulls(cat_col)
+        self._check_no_nulls(num_col)
 
         # Set plotting style
         with plt.style.context(self.style):
             # Reorder dataframe
-            df_grouped = self.df.groupby([cat_col])[num_col].mean(numeric_only=True).round(0).reset_index()
+            df_grouped = self.df.groupby([cat_col], observed=False)[num_col].mean(numeric_only=True).round(0).reset_index()
             df_sorted = df_grouped.sort_values(by=[num_col])
 
             pal = list(sns.color_palette(palette=bar_color, n_colors=len(df_sorted)).as_hex())
@@ -933,25 +986,18 @@ class Graphs:
     # This method creates race track bar plot
     def race_track_plot(self, cat_col: str, num_col: str, bar_color: str) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if cat_col not in self.df.columns:
-            raise KeyError(f'Column "{cat_col}" not found in dataframe')
-        if num_col not in self.df.columns:
-            raise KeyError(f'Column "{num_col}" not found in dataframe')
-        if self.df[cat_col].dtype not in ['object', 'category', 'bool']:
-            raise ValueError(f'[{cat_col}] not a categorical data type (object, category, bool)')
-        if self.df[num_col].dtype not in ['int64', 'float64']:
-            raise ValueError(f'[{num_col}] not a numerical data type (int64, float64)')
-        if self.df[cat_col].isnull().any():
-            raise ValueError(f'Column "{cat_col}" contains null values')
-        if self.df[num_col].isnull().any():
-            raise ValueError(f'Column "{num_col}" contains null values')
+        self._validate_not_empty()
+        self._check_column_present(cat_col)
+        self._check_column_present(num_col)
+        self._check_categorical_column(cat_col)
+        self._check_numerical_column(num_col)
+        self._check_no_nulls(cat_col)
+        self._check_no_nulls(num_col)
 
         # Set plotting theme
         with plt.style.context(self.style):
             # Reorder dataframe
-            df_grouped = self.df.groupby([cat_col])[num_col].mean().round(0).reset_index()
+            df_grouped = self.df.groupby([cat_col], observed=False)[num_col].mean().round(0).reset_index()
             df_sorted = df_grouped.sort_values(by=[num_col])
 
             pal = list(sns.color_palette(palette=bar_color, n_colors=len(df_sorted)).as_hex())
@@ -985,53 +1031,47 @@ class Graphs:
     # This method produces an interactive Treemap
     def treemap(self, cat_col: str, num_col: str, color_scale: str) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if cat_col not in self.df.columns:
-            raise KeyError(f'Column "{cat_col}" not found in dataframe')
-        if num_col not in self.df.columns:
-            raise KeyError(f'Column "{num_col}" not found in dataframe')
-        if self.df[cat_col].dtype not in ['object', 'category', 'bool']:
-            raise ValueError(f'[{cat_col}] not a categorical data type (object, category, bool)')
-        if self.df[num_col].dtype not in ['int64', 'float64']:
-            raise ValueError(f'[{num_col}] not a numerical data type (int64, float64)')
-        if self.df[cat_col].isnull().any():
-            raise ValueError(f'Column "{cat_col}" contains null values')
-        if self.df[num_col].isnull().any():
-            raise ValueError(f'Column "{num_col}" contains null values')
+        self._validate_not_empty()
+        self._check_column_present(cat_col)
+        self._check_column_present(num_col)
+        self._check_categorical_column(cat_col)
+        self._check_numerical_column(num_col)
+        self._check_no_nulls(cat_col)
+        self._check_no_nulls(num_col)
 
-        df_grouped = self.df.groupby([cat_col])[num_col].mean(numeric_only=True).round().reset_index()
-        fig = px.treemap(df_grouped, path=[px.Constant(f'{cat_col.title()} Categories'), cat_col],
-                            values=df_grouped[num_col],
-                            color=df_grouped[num_col],
-                            color_continuous_scale=color_scale,
-                            color_continuous_midpoint=np.average(df_grouped[num_col]),
-                            title= f"Treemap of {cat_col.title()} Categories and the Average {num_col.title().replace('_', ' ')} for Each Category."
-                            )
-        fig.update_layout(margin= dict(t=50, l=25, r=25, b=25), title_x=0.5)
+        # Group and remove any remaining NaNs (just in case)
+        df_grouped = self.df.groupby([cat_col], observed=False)[num_col].mean(numeric_only=True).round().reset_index()
+        df_grouped = df_grouped.dropna(subset=[cat_col, num_col])
+
+        # Check for empty DataFrame after grouping/dropping
+        if df_grouped.empty:
+            raise ValueError("No data available after grouping. Check your input columns.")
+
+        fig = px.treemap(
+            df_grouped,
+            path=[px.Constant(f'{cat_col.title()} Categories'), cat_col],
+            values=num_col,
+            color=num_col,
+            color_continuous_scale=color_scale,
+            color_continuous_midpoint=np.average(df_grouped[num_col]),
+            title=f"Treemap of {cat_col.title()} Categories and the Average {num_col.title().replace('_', ' ')} for Each Category."
+        )
+        fig.update_layout(margin=dict(t=50, l=25, r=25, b=25), title_x=0.5)
         fig.show()
-        plt.show()
 
     # This method produces interactive pie chart with percentages
     def percentage_pie_chart(self, cat_col: str, num_col: str, bar_col: str) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if cat_col not in self.df.columns:
-            raise KeyError(f'Column "{cat_col}" not found in dataframe')
-        if num_col not in self.df.columns:
-            raise KeyError(f'Column "{num_col}" not found in dataframe')
-        if self.df[cat_col].dtype not in ['object', 'category', 'bool']:
-            raise ValueError(f'[{cat_col}] not a categorical data type (object, category, bool)')
-        if self.df[num_col].dtype not in ['int64', 'float64']:
-            raise ValueError(f'[{num_col}] not a numerical data type (int64, float64)')
-        if self.df[cat_col].isnull().any():
-            raise ValueError(f'Column "{cat_col}" contains null values')
-        if self.df[num_col].isnull().any():
-            raise ValueError(f'Column "{num_col}" contains null values')
+        self._validate_not_empty()
+        self._check_column_present(cat_col)
+        self._check_column_present(num_col)
+        self._check_categorical_column(cat_col)
+        self._check_numerical_column(num_col)
+        self._check_no_nulls(cat_col)
+        self._check_no_nulls(num_col)
 
         # Group by and calculate mean
-        df_grouped = self.df.groupby([cat_col])[num_col].mean(numeric_only=True).round(2).reset_index()
+        df_grouped = self.df.groupby([cat_col], observed=False)[num_col].mean(numeric_only=True).round(2).reset_index()
 
         # Reorder dataframe
         df_sorted = df_grouped.sort_values(by=[num_col])
@@ -1053,23 +1093,16 @@ class Graphs:
     # This method produces interactive bar chart
     def interactive_bar_chart(self, cat_col: str, num_col: str, bar_col: str) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if cat_col not in self.df.columns:
-            raise KeyError(f'Column "{cat_col}" not found in dataframe')
-        if num_col not in self.df.columns:
-            raise KeyError(f'Column "{num_col}" not found in dataframe')
-        if self.df[cat_col].dtype not in ['object', 'category', 'bool']:
-            raise ValueError(f'[{cat_col}] not a categorical data type (object, category, bool)')
-        if self.df[num_col].dtype not in ['int64', 'float64']:
-            raise ValueError(f'[{num_col}] not a numerical data type (int64, float64)')
-        if self.df[cat_col].isnull().any():
-            raise ValueError(f'Column "{cat_col}" contains null values')
-        if self.df[num_col].isnull().any():
-            raise ValueError(f'Column "{num_col}" contains null values')
+        self._validate_not_empty()
+        self._check_column_present(cat_col)
+        self._check_column_present(num_col)
+        self._check_categorical_column(cat_col)
+        self._check_numerical_column(num_col)
+        self._check_no_nulls(cat_col)
+        self._check_no_nulls(num_col)
 
         # Group by and calculate mean
-        df_grouped = self.df.groupby([cat_col])[num_col].mean(numeric_only=True).round(2).reset_index()
+        df_grouped = self.df.groupby([cat_col], observed=False)[num_col].mean(numeric_only=True).round(2).reset_index()
 
         # Reorder dataframe
         df_sorted = df_grouped.sort_values(by=[num_col])
@@ -1093,15 +1126,16 @@ class Graphs:
     # This method creates interactive polar chart
     def polar_line_chart(self, cat_col: str, num_col: str, bar_col: str) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if self.df[cat_col].dtype not in ['object', 'category', 'bool']:
-            raise ValueError(f'[{cat_col}] not a categorical data type (object, category, bool)')
-        if self.df[num_col].dtype not in ['int64', 'float64']:
-            raise ValueError(f'[{num_col}] not a numerical data type (int64, float64)')
+        self._validate_not_empty()
+        self._check_column_present(cat_col)
+        self._check_column_present(num_col)
+        self._check_categorical_column(cat_col)
+        self._check_numerical_column(num_col)
+        self._check_no_nulls(cat_col)
+        self._check_no_nulls(num_col)
 
         # Group by and calculate mean
-        df_grouped = self.df.groupby([cat_col])[num_col].mean(numeric_only=True).round(2).reset_index()
+        df_grouped = self.df.groupby([cat_col], observed=False)[num_col].mean(numeric_only=True).round(2).reset_index()
 
         # Reorder dataframe
         df_sorted = df_grouped.sort_values(by=[num_col])
@@ -1123,15 +1157,16 @@ class Graphs:
     # This method creates an interactive circular bubble chart
     def circular_bubble_chart(self, cat_col: str, num_col: str, bar_col: str) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if self.df[cat_col].dtype not in ['object', 'category', 'bool']:
-            raise ValueError(f'[{cat_col}] not a categorical data type (object, category, bool)')
-        if self.df[num_col].dtype not in ['int64', 'float64']:
-            raise ValueError(f'[{num_col}] not a numerical data type (int64, float64)')
+        self._validate_not_empty()
+        self._check_column_present(cat_col)
+        self._check_column_present(num_col)
+        self._check_categorical_column(cat_col)
+        self._check_numerical_column(num_col)
+        self._check_no_nulls(cat_col)
+        self._check_no_nulls(num_col)
 
         # Group by and calculate mean
-        df_grouped = self.df.groupby([cat_col])[num_col].mean(numeric_only=True).round(2).reset_index()
+        df_grouped = self.df.groupby([cat_col], observed=False)[num_col].mean(numeric_only=True).round(2).reset_index()
 
         # Reorder dataframe
         df_sorted = df_grouped.sort_values(by=[num_col])
@@ -1168,18 +1203,16 @@ class Graphs:
     # This method makes subplots of regresssion plots
     def regression_subplots(self, cat_col: str, num_col1: str, num_col2: str, sub_1: int, sub_2: int) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if self.df[cat_col].dtype not in ['object', 'category', 'bool']:
-            raise ValueError(f'[{cat_col}] is not a categorical data type (object, category, bool)')
-        for num_col in [num_col1, num_col2]:
-            if self.df[num_col].dtype not in ['int64', 'float64']:
-                raise ValueError(f'[{num_col}] is not a numerical data type (int64, float64)')
-        if self.df[cat_col].isnull().any():
-            raise ValueError(f'Column "{cat_col}" contains null values')
-        for num_col in [num_col1, num_col2]:
-            if self.df[num_col].isnull().any():
-                raise ValueError(f'Column "{num_col}" contains null values')
+        self._validate_not_empty()
+        self._check_column_present(cat_col)
+        self._check_column_present(num_col1)
+        self._check_column_present(num_col2)
+        self._check_categorical_column(cat_col)
+        self._check_numerical_column(num_col1)
+        self._check_numerical_column(num_col2)
+        self._check_no_nulls(cat_col)
+        self._check_no_nulls(num_col1)
+        self._check_no_nulls(num_col2)
 
         # Set plotting theme
         with plt.style.context(self.style):
@@ -1221,16 +1254,14 @@ class Graphs:
     # This method returns subplots of histograms for numerical columns
     def histogram_subplots(self, sub_1: int, sub_2: int) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
+        self._validate_not_empty()
         
         # Identify all the columns that are numerical
         num_cols: list[str] = [col for col in self.df.columns if self.df[col].dtype in ['int64', 'float64']]
 
         # Check for null values
         for col in num_cols:
-            if self.df[col].isnull().any():
-                raise ValueError(f'Column "{col}" contains null values')
+            self._check_no_nulls(col)
 
         # Set plotting style
         with plt.style.context(self.style):
@@ -1255,44 +1286,43 @@ class Graphs:
             plt.show()
 
     # This method return subplots of countplots of categorical columns
-    def cat_count_subplots(self, sub_1: int, sub_2: int, limit=None) -> None:
+    def cat_count_subplots(self, sub_1: int, sub_2: int, limit: Optional[int] = None) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
+        self._validate_not_empty()
         
         # Identify all the columns that are categorical
         cat_cols: list[str] = [col for col in self.df.columns if self.df[col].dtype not in ['int64', 'float64']]
 
         # Check for null values
         for col in cat_cols:
-            if self.df[col].isnull().any():
-                raise ValueError(f'Column "{col}" contains null values')
+            self._check_no_nulls(col)
 
-        # Initialize figure
-        fig, axes = plt.subplots(sub_1, sub_2, figsize=(20, 20))
-        axes = axes.flatten()
+        # Set plotting style
+        with plt.style.context('ggplot'):
+            # Initialize figure
+            fig, axes = plt.subplots(sub_1, sub_2, figsize=(20, 20))
+            axes = axes.flatten()
 
         # Iterate columns and plot corresponding data
         for i, col in enumerate(cat_cols):
 
-            # Set plotting style
-            with plt.style.context('ggplot'):
+            # Seaborn count plot
+            if limit is not None and isinstance(limit, int):
+                order = self.df[col].value_counts(normalize=True).iloc[:limit].index
+            else:
+                order = self.df[col].value_counts(normalize=True).index
+            sns.countplot(data=self.df, x=col, order=order, ax=axes[i])
+            axes[i].set_xlabel(col)
+            axes[i].grid(False)
 
-                # Seaborn count plot
-                if limit is not None and isinstance(limit, int):
-                    order = self.df[col].value_counts(normalize=True).iloc[:limit].index
-                else:
-                    order = self.df[col].value_counts(normalize=True).index
-                sns.countplot(data=self.df, x=col, order=order, ax=axes[i])
-                axes[i].set_xlabel(col)
-
-                # Annotate each bar with its percentage
-                total = len(self.df[col])
-                for p in axes[i].patches:
-                    percentage = '{:.1f}%'.format(100 * p.get_height() / total)
-                    x = p.get_x() + p.get_width() / 2
-                    y = p.get_height()
-                    axes[i].annotate(percentage, (x, y), ha='center', va='bottom')
+            # Annotate each bar with its count
+            for p in axes[i].patches:
+                count = int(p.get_height())
+                if count == 0:
+                    continue # skip annotating zero-height (empty) bars
+                x = p.get_x() + p.get_width() / 2
+                y = p.get_height()
+                axes[i].annotate(f"{count}", (x, y), ha="center", va="bottom", fontsize=10, fontweight="semibold")
 
         # Remove extra subplots if there are more axes than needed
         for j in range(i + 1, len(axes)):
@@ -1302,18 +1332,16 @@ class Graphs:
         plt.show()
 
     # This method return subplots of scatter plots
-    def scatter_subplots(self, num_col: str, sub_1: int, sub_2: int, hue_col=None) -> None:
+    def scatter_subplots(self, num_col: str, sub_1: int, sub_2: int, hue_col: Optional[str] = None) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        if self.df[num_col].dtype not in ['int64', 'float64']:
-            raise ValueError(f'[{num_col}] not a numerical data type (int64, float64)')
-        if hue_col and self.df[hue_col].dtype not in ['object', 'category', 'bool']:
-            raise ValueError(f'[{hue_col}] not a categorical data type (object, category, bool)')
-        if self.df[num_col].isnull().any():
-            raise ValueError(f'Column "{num_col}" contains null values')
-        if hue_col and self.df[hue_col].isnull().any():
-            raise ValueError(f'Column "{hue_col}" contains null values')
+        self._validate_not_empty()
+        self._check_column_present(num_col)
+        self._check_numerical_column(num_col)
+        self._check_no_nulls(num_col)
+        if hue_col is not None:
+            self._check_column_present(hue_col)
+            self._check_no_nulls(hue_col)
+            self._check_categorical_column(hue_col)
 
         # Identify all the columns that are numerical
         num_cols: list[str] = [col for col, dtype in zip(self.df.columns, self.df.dtypes)
@@ -1346,29 +1374,30 @@ class Graphs:
     # This method returns subplots of boxplots for numerical columns
     def box_subplots(self, sub_1: int, sub_2: int) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
+        self._validate_not_empty()
         
         # Identify all the columns that are numerical
         num_cols: list[str] = [col for col in self.df.columns if self.df[col].dtype in ['int64', 'float64']]
 
         for col in num_cols:
-            if self.df[col].isnull().any():
-                raise ValueError(f'Column "{col}" contains null values')
+            self._check_no_nulls(col)
+
+        # Set plotting style
+        with plt.style.context(self.style):    
 
         # Initialize figure
-        fig, axes = plt.subplots(sub_1, sub_2, figsize=(20, 20))
-        axes = axes.flatten()
+            fig, axes = plt.subplots(sub_1, sub_2, figsize=(20, 20))
+            axes = axes.flatten()
 
         # Iterate columns and plot corresponding data
         for i, col in enumerate(num_cols):
 
             # Set plotting style
-            with plt.style.context(self.style):
+            #with plt.style.context(self.style):
 
-                # Seaborn boxplot
-                sns.boxplot(x=self.df[col], ax=axes[i])
-                axes[i].set_xlabel(col)
+            # Seaborn boxplot
+            sns.boxplot(x=self.df[col], ax=axes[i])
+            axes[i].set_xlabel(col)
 
         # Remove extra subplots if there are more axes than needed
         for j in range(len(num_cols), len(axes)):
@@ -1380,19 +1409,15 @@ class Graphs:
     # This method returns subplots of barplots
     def bar_subplots(self, cat_col: str, sub_1: int, sub_2: int, limit: Optional[int] = None) -> None:
         # Error Handling
-        if self.df.empty:
-            raise ValueError("DataFrame is empty")
-        
-        # Check if the categorical column has a valid datatype
-        if self.df[cat_col].dtype not in ['object', 'category', 'bool']:
-            raise ValueError(f'[{cat_col}] not a valid categorical datatype (object, category, bool)')
+        self._validate_not_empty()
+        self._check_column_present(cat_col)
+        self._check_no_nulls(cat_col)
 
         # Identify all the columns that are numerical
         num_cols = self.df.select_dtypes(include=['int64', 'float64']).columns
 
         for col in num_cols:
-            if self.df[col].isnull().any():
-                raise ValueError(f'Column "{col}" contains null values')
+            self._check_no_nulls(col)
 
         # Set plotting style
         with plt.style.context(self.style):
@@ -1406,10 +1431,10 @@ class Graphs:
 
                 # Use seaborn barplot
                 if limit is not None and isinstance(limit, int):
-                    order = self.df.groupby(cat_col).mean(numeric_only=True).sort_values(j, ascending=False).iloc[:limit].index
+                    order = self.df.groupby(cat_col, observed=False).mean(numeric_only=True).sort_values(j, ascending=False).iloc[:limit].index
                 else:
-                    order = self.df.groupby(cat_col).mean(numeric_only=True).sort_values(j, ascending=False).index
-                sns.barplot(x=cat_col, y=j, order=order, palette='magma', errwidth=0, data=self.df, ax=ax)
+                    order = self.df.groupby(cat_col, observed=False).mean(numeric_only=True).sort_values(j, ascending=False).index
+                sns.barplot(x=cat_col, y=j, hue=cat_col, order=order, palette='magma', legend=False, err_kws={'linewidth': 0}, data=self.df, ax=ax)
 
                 ax.set_title(f"{cat_col.title().replace('_', ' ')} vs. Average {j.title().replace('_', ' ')} Bar Chart")
                 ax.set_xlabel(j)
