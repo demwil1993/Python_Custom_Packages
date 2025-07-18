@@ -148,7 +148,6 @@ class Wrangler(pd.DataFrame):
         print('-' * 40)
 
         if plot:
-            # Check if the column is boolean
             if self[column].dtype == 'bool':
                 sns.countplot(x=self[column].astype(int), data=self)
             else:
@@ -233,6 +232,8 @@ class Wrangler(pd.DataFrame):
         self._check_not_empty()
         for column in self.columns:
             if self[column].dtype in ['int64', 'float64'] and self[column].isna().any():
+                if self[column].isna().all():
+                    raise ValueError(f"Column '{column}' contains only null values. Imputation with mean is not possible.")
                 self[column] = self[column].fillna(self[column].mean())
             elif self[column].dtype in ['object', 'category', 'bool'] and self[column].isna().any():
                 # Handle columns where all values are null, so mode() returns empty
@@ -338,8 +339,6 @@ class Wrangler(pd.DataFrame):
         self._check_not_empty()
         self._check_valid_column(column)
         
-        if not isinstance(column, str):
-            raise ValueError(f"Parameter 'column' must be a string.")
         unique_values = set(self[column].unique())
         expected_values = {true_value, false_value}
         if not unique_values.issubset(expected_values):
@@ -599,7 +598,7 @@ class Graphs:
         self._check_numerical_column(num_col2)
         self._check_no_nulls(num_col1)
         self._check_no_nulls(num_col2)
-        if hue_col is not None:
+        if hue_col:
             self._check_column_present(hue_col)
             self._check_categorical_column(hue_col)
             self._check_no_nulls(hue_col)
@@ -688,7 +687,7 @@ class Graphs:
         self._validate_not_empty()
         self._check_column_present(column)
         self._check_no_nulls(column)
-        if hue_col is not None:
+        if hue_col:
             self._check_column_present(hue_col)
             self._check_no_nulls(hue_col)
             self._check_categorical_column(hue_col)
@@ -706,7 +705,7 @@ class Graphs:
                 title = f"{column.title().replace('_', ' ')} Countplot [Top {limit}]"
             else:
                 title = f"{column.title().replace('_', ' ')} Countplot"
-            if hue_col is not None:
+            if hue_col:
                 title += f' with {hue_col.title().replace("_", " ")} Categories'
             ax.set_title(title)
             ax.set(xlabel=None)
@@ -734,7 +733,7 @@ class Graphs:
         self._check_no_nulls(y_column)
         self._check_categorical_column(x_column)
         self._check_numerical_column(y_column)
-        if hue_column is not None:
+        if hue_column:
             self._check_column_present(hue_column)
             self._check_no_nulls(hue_column)
             self._check_categorical_column(hue_column)
@@ -770,7 +769,7 @@ class Graphs:
                 )
 
                 title = f"{x_column.title().replace('_', ' ')} vs {y_column.title().replace('_', ' ')} lineplot"
-                if hue_column is not None:
+                if hue_column:
                     title += f' with {hue_column.title().replace("_", " ")} Categories'
                 ax.set_title(title)
 
@@ -1338,7 +1337,7 @@ class Graphs:
         self._check_column_present(num_col)
         self._check_numerical_column(num_col)
         self._check_no_nulls(num_col)
-        if hue_col is not None:
+        if hue_col:
             self._check_column_present(hue_col)
             self._check_no_nulls(hue_col)
             self._check_categorical_column(hue_col)
@@ -1392,10 +1391,6 @@ class Graphs:
         # Iterate columns and plot corresponding data
         for i, col in enumerate(num_cols):
 
-            # Set plotting style
-            #with plt.style.context(self.style):
-
-            # Seaborn boxplot
             sns.boxplot(x=self.df[col], ax=axes[i])
             axes[i].set_xlabel(col)
 
