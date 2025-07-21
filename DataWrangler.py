@@ -192,7 +192,7 @@ class Wrangler(pd.DataFrame):
             if n_null_target > 0 or n_null_cat > 0:
                 print(f"Warning: '{target}' has {n_null_target} nulls, '{cat_col}' has {n_null_cat} nulls. Nulls in '{target}' are ignored in the mean. Nulls in '{cat_col}' will be omitted.")
         
-        result = self.groupby(cat_col)[target].mean().sort_values(ascending=False)
+        result = self.groupby(cat_col, observed=False)[target].mean().sort_values(ascending=False)
         print(pd.DataFrame({'TARGET MEAN': result}))
 
     # Cross examines the relationship between numerical columns and target column regardless of target datatype
@@ -211,7 +211,7 @@ class Wrangler(pd.DataFrame):
                     "Nulls in '{num_col}' are ignored in the mean. Nulls in '{target}' will form their own group."
                 )
         
-        result = self.groupby(target)[num_col].mean().sort_index(ascending=False)
+        result = self.groupby(target, observed=False)[num_col].mean().sort_index(ascending=False)
         print(result)
 
     # Normalization of numerical column
